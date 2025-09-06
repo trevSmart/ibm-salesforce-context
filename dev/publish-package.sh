@@ -482,7 +482,6 @@ if [ "$SKIP_TESTS" = "false" ]; then
   echo "   Executant tests amb \033[96mnpx -y -p $package_name@$new_version $bin_name --stdio\033[0m"
   TEST_NPX_OUTPUT=$(mktemp)
   MCP_TEST_SERVER_SPEC="npx:$package_name@$new_version#$bin_name" \
-  MCP_TEST_SERVER_ARGS='--stdio' \
     npm run test -- --quiet | tee "$TEST_NPX_OUTPUT"
 
   if ! grep -q '🎉 All tests passed!' "$TEST_NPX_OUTPUT"; then
