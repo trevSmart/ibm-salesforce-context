@@ -300,6 +300,12 @@ const readyPromise = new Promise((resolve) => (resolveServerReady = resolve)); /
 let resolveOrgReady;
 const orgReadyPromise = new Promise((resolve) => (resolveOrgReady = resolve)); // org details loaded/attempted
 
+export function markServerReady() {
+	if (typeof resolveServerReady === 'function') {
+		resolveServerReady();
+	}
+}
+
 //Server initialization function
 // This server supports both stdio and HTTP transports
 // 'transport' parameter can be either 'stdio' or 'http'
@@ -307,15 +313,15 @@ const orgReadyPromise = new Promise((resolve) => (resolveOrgReady = resolve)); /
 export async function setupServer(transport) {
 	registerHandlers();
 
-	await connectTransport(mcpServer, transport);
+	if (transport) {
+		await connectTransport(mcpServer, transport);
+		markServerReady();
 
-	if (typeof resolveServerReady === 'function') {
-		resolveServerReady();
+		let connectedMessage = transport === 'stdio' ? 'stdio transport' : `HTTP transport on port ${process.env.MCP_HTTP_PORT || '3000'}`;
+		connectedMessage = `Connected to ${connectedMessage} and ready`;
+		logger.info(connectedMessage);
 	}
 
-	let connectedMessage = transport === 'stdio' ? 'stdio transport' : `HTTP transport on port ${process.env.MCP_HTTP_PORT || '3000'}`;
-	connectedMessage = `Connected to ${connectedMessage} and ready`;
-	logger.info(connectedMessage);
 	return {protocolVersion, serverInfo, capabilities};
 }
 
