@@ -1,6 +1,6 @@
 import {resolve} from 'node:path';
 import {spawn} from 'node:child_process';
-import {TestMcpClient} from 'ibm-test-mcp-client';
+import {TestMcpClient} from 'microscope-mcp-client';
 
 const SERVER_PATH = resolve(process.cwd(), 'index.js');
 

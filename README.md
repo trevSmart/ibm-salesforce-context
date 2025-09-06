@@ -59,6 +59,81 @@ First, install the IBM Salesforce MCP server with your client. A typical configu
 }
 ```
 
+### Command Line Interface
+
+The IBM Salesforce MCP Server supports comprehensive CLI arguments for configuration:
+
+#### Basic Usage
+
+```bash
+# Use stdio transport (default)
+test_research4
+
+# Use HTTP transport
+test_research4 --transport http
+
+# Use HTTP transport with custom port
+test_research4 --transport http --port 8080
+
+# Set log level
+test_research4 --transport stdio --log-level debug
+
+# Set workspace paths
+test_research4 --transport http --workspace /path/to/project
+
+# Show help
+test_research4 --help
+
+# Show version
+test_research4 --version
+```
+
+#### CLI Arguments
+
+| Argument | Description | Default | Example |
+|----------|-------------|---------|---------|
+| `--transport TYPE` | Transport type: `stdio` or `http` | `stdio` | `--transport http` |
+| `--log-level LEVEL` | Set log level | `info` | `--log-level debug` |
+| `--port PORT` | HTTP port for http transport | `3000` | `--port 8080` |
+| `--workspace PATHS` | Workspace paths (comma-separated) | - | `--workspace /path/to/project` |
+| `--help` | Show help message | - | `--help` |
+| `--version` | Show version information | - | `--version` |
+
+#### Environment Variables
+
+Environment variables can be used for default configuration (overridden by CLI arguments):
+
+| Variable | Description | Default | Example |
+|----------|-------------|---------|---------|
+| `MCP_TRANSPORT` | Transport type: `stdio` or `http` | `stdio` | `MCP_TRANSPORT=http` |
+| `LOG_LEVEL` | Log level | `info` | `LOG_LEVEL=debug` |
+| `MCP_HTTP_PORT` | HTTP port for http transport | `3000` | `MCP_HTTP_PORT=8080` |
+| `WORKSPACE_FOLDER_PATHS` | Workspace paths (comma-separated) | - | `WORKSPACE_FOLDER_PATHS=/path/to/project` |
+
+#### Priority Order
+
+Configuration values are applied in the following priority order:
+
+1. **CLI Arguments** (highest priority)
+2. **Environment Variables** (medium priority)
+3. **Defaults** (lowest priority)
+
+#### Examples
+
+```bash
+# CLI argument overrides environment variable
+MCP_TRANSPORT=http test_research4 --transport stdio  # Result: stdio
+
+# Environment variable when no CLI argument
+MCP_TRANSPORT=http test_research4  # Result: http
+
+# Default when no CLI or environment variable
+test_research4  # Result: stdio
+
+# Complex configuration
+test_research4 --transport http --port 3001 --log-level debug --workspace /path/to/project
+```
+
 [<img src="https://img.shields.io/badge/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF" alt="Install in VS Code">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522salesforce%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522test_research4%2540latest%2522%255D%257D) [<img alt="Install in VS Code Insiders" src="https://img.shields.io/badge/VS_Code_Insiders-VS_Code_Insiders?style=flat-square&label=Install%20Server&color=24bfa5">](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522salesforce%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522test_research4%2540latest%2522%255D%257D)
 
 <details><summary><b>Install in VS Code</b></summary>
@@ -82,7 +157,30 @@ Go to `Cursor Settings` -> `MCP` -> `Add new MCP Server`. Name to your liking, u
     "salesforce": {
       "command": "npx",
       "args": [
-        "test_research4@latest"
+        "test_research4@latest",
+        "--transport",
+        "stdio"
+      ]
+    }
+  }
+}
+```
+
+You can customize the server with CLI arguments:
+
+```js
+{
+  "mcpServers": {
+    "salesforce": {
+      "command": "npx",
+      "args": [
+        "test_research4@latest",
+        "--transport",
+        "http",
+        "--port",
+        "8080",
+        "--log-level",
+        "debug"
       ]
     }
   }
@@ -101,7 +199,30 @@ Follow Windsurf MCP [documentation](https://docs.windsurf.com/windsurf/cascade/m
     "salesforce": {
       "command": "npx",
       "args": [
-        "test_research4@latest"
+        "test_research4@latest",
+        "--transport",
+        "stdio"
+      ]
+    }
+  }
+}
+```
+
+You can customize with additional CLI arguments:
+
+```js
+{
+  "mcpServers": {
+    "salesforce": {
+      "command": "npx",
+      "args": [
+        "test_research4@latest",
+        "--transport",
+        "http",
+        "--port",
+        "3000",
+        "--log-level",
+        "info"
       ]
     }
   }
@@ -120,7 +241,28 @@ Follow the MCP install [guide](https://modelcontextprotocol.io/quickstart/user),
     "salesforce": {
       "command": "npx",
       "args": [
-        "test_research4@latest"
+        "test_research4@latest",
+        "--transport",
+        "stdio"
+      ]
+    }
+  }
+}
+```
+
+You can customize with CLI arguments:
+
+```js
+{
+  "mcpServers": {
+    "salesforce": {
+      "command": "npx",
+      "args": [
+        "test_research4@latest",
+        "--transport",
+        "http",
+        "--port",
+        "3000"
       ]
     }
   }
@@ -134,7 +276,11 @@ Follow the MCP install [guide](https://modelcontextprotocol.io/quickstart/user),
 Use the Claude Code CLI to add the IBM Salesforce MCP server:
 
 ```bash
+# Basic installation
 claude mcp add salesforce npx test_research4@latest
+
+# With CLI arguments
+claude mcp add salesforce "npx test_research4@latest --transport http --port 3000"
 ```
 </details>
 
@@ -149,7 +295,30 @@ Follow the MCP install [guide](https://github.com/google-gemini/gemini-cli/blob/
     "salesforce": {
       "command": "npx",
       "args": [
-        "test_research4@latest"
+        "test_research4@latest",
+        "--transport",
+        "stdio"
+      ]
+    }
+  }
+}
+```
+
+You can customize with CLI arguments:
+
+```js
+{
+  "mcpServers": {
+    "salesforce": {
+      "command": "npx",
+      "args": [
+        "test_research4@latest",
+        "--transport",
+        "http",
+        "--port",
+        "3000",
+        "--log-level",
+        "debug"
       ]
     }
   }
