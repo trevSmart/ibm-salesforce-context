@@ -168,5 +168,6 @@
     },
     "files.watcherExclude": {
         "**.npm-cache": true
-    }
+    },
+    "task.autoDetect": "off"
 }

@@ -108,17 +108,34 @@ IBM Salesforce MCP Server is a Model Context Protocol (MCP) server built in Node
 
 ### Running tests
 
-Tests are written with Vitest and are located in the `test` directory.
+- #### Vitest test scripts
 
-- To run all tests use:
+  Tests are written with Vitest and are located in the `test` directory.
+
+  - To run all tests use:
+
     ```
     npm run test
     ```
 
-- To run specific tests:
+  - To run specific tests:
+
     ```
     npm run test -- --run describeObject.test.js executeSoqlQuery.test.js
     ```
+
+
+- #### Using the IBM Test MCP Client command line interface
+
+  The IBM Test MCP Client is available as a dev dependency (microscope-mcp-client). It can connect to the MCP server through stdio transport and provides an interface command line interface to operate the MCP server.
+
+  You can run it with:
+  ```
+  microscope --server local_mcp_server.js #For local servers
+
+  ```
+
+
 
 ## Pull requests
 
