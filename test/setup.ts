@@ -1,16 +1,29 @@
-import { beforeAll, expect } from 'vitest';
+import {beforeAll, afterAll, expect} from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import {setupServer, readyPromise, mcpServer} from '../src/mcp-server.js';
+import {stopHttpServer} from '../src/lib/transport.js';
+
+const port = 3000 + Number(process.env.VITEST_WORKER_ID || 0);
+process.env.MCP_HTTP_PORT = String(port);
 
 beforeAll(async () => {
-	const artifactsDir = path.join(process.cwd(), '.test-artifacts');
-	try {
-		if (fs.existsSync(artifactsDir)) {
-			fs.rmSync(artifactsDir, { recursive: true, force: true });
-		}
-	} catch (err) {
-		console.error('No s’ha pogut netejar .test-artifacts:', err);
-	}
+        const artifactsDir = path.join(process.cwd(), '.test-artifacts');
+        try {
+                if (fs.existsSync(artifactsDir)) {
+                        fs.rmSync(artifactsDir, {recursive: true, force: true});
+                }
+        } catch (err) {
+                console.error('No s’ha pogut netejar .test-artifacts:', err);
+        }
+
+        await setupServer('http');
+        await readyPromise;
+});
+
+afterAll(async () => {
+        await stopHttpServer();
+        await mcpServer.close();
 });
 
 // Helper per noms de fitxer

@@ -1,5 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { spawn, type ChildProcess } from 'node:child_process';
+import {describe, it, expect, afterAll} from 'vitest';
 import fetch from 'node-fetch';
 
 interface McpResponse {
@@ -21,45 +20,24 @@ interface McpResponse {
 }
 
 describe('MCP HTTP Connection Test', () => {
-	let serverProcess: ChildProcess | null = null;
-	let sessionId: string | null = null;
-	const baseUrl = 'http://localhost:3000/mcp';
+        let sessionId: string | null = null;
+        const baseUrl = `http://localhost:${process.env.MCP_HTTP_PORT || '3000'}/mcp`;
 
-	beforeAll(async () => {
-		// Start MCP server in HTTP mode
-		console.log('🚀 Starting MCP server in HTTP mode...');
-		serverProcess = spawn('npm', ['start'], {
-			stdio: 'pipe',
-			cwd: process.cwd()
-		});
-
-		// Wait for server to be ready
-		await waitForServer(baseUrl, 30000);
-		console.log('✅ MCP server started successfully');
-	}, 35000);
-
-	afterAll(async () => {
-		// Close session if exists
-		if (sessionId) {
-			try {
-				await fetch(baseUrl, {
-					method: 'DELETE',
-					headers: {
-						'mcp-session-id': sessionId
-					}
-				});
-				console.log('🔌 Session closed');
-			} catch (error) {
-				console.warn('Warning: Could not close session:', error);
-			}
-		}
-
-		// Kill server process
-		if (serverProcess) {
-			serverProcess.kill();
-			console.log('🛑 MCP server stopped');
-		}
-	});
+        afterAll(async () => {
+                if (sessionId) {
+                        try {
+                                await fetch(baseUrl, {
+                                        method: 'DELETE',
+                                        headers: {
+                                                'mcp-session-id': sessionId
+                                        }
+                                });
+                                console.log('🔌 Session closed');
+                        } catch (error) {
+                                console.warn('Warning: Could not close session:', error);
+                        }
+                }
+        });
 
 	it('should initialize MCP session successfully', async () => {
 		const initRequest = {
@@ -236,41 +214,4 @@ describe('MCP HTTP Connection Test', () => {
 	});
 });
 
-/**
- * Wait for server to be ready by polling the endpoint
- */
-async function waitForServer(url: string, timeoutMs: number = 30000): Promise<void> {
-	const startTime = Date.now();
-
-	while (Date.now() - startTime < timeoutMs) {
-		try {
-			const response = await fetch(url, {
-				method: 'POST',
-				headers: {
-					'content-type': 'application/json',
-					'accept': 'application/json, text/event-stream'
-				},
-				body: JSON.stringify({
-					jsonrpc: '2.0',
-					id: 0,
-					method: 'initialize',
-					params: {
-						protocolVersion: '2025-06-18',
-						capabilities: {},
-						clientInfo: { name: 'health-check', version: '1.0.0' }
-					}
-				})
-			});
-
-			if (response.ok) {
-				return;
-			}
-		} catch (_error) {
-			// Server not ready yet, continue waiting
-		}
-
-		await new Promise(resolve => setTimeout(resolve, 1000));
-	}
-
-	throw new Error(`Server did not become ready within ${timeoutMs}ms`);
-}
+/* No waitForServer helper needed: setup.ts ensures server is ready */

@@ -37,6 +37,8 @@ async function findAvailablePort(startPort, maxAttempts = 10) {
 	}
 }
 
+let httpServer;
+
 /**
  * Connects the provided MCP server to the requested transport.
  * Handlers should be registered on the server before this function is called.
@@ -118,7 +120,7 @@ export async function connectTransport(mcpServer, transportType) {
 				if (port !== requestedPort) {
 					console.log(`⚠️  Port ${requestedPort} is occupied. Using port ${port} instead.`);
 				}
-				app.listen(port, () => {
+				httpServer = app.listen(port, () => {
 					console.log(`🚀 MCP HTTP server running on port ${port}`);
 				});
 			} catch (error) {
@@ -132,3 +134,16 @@ export async function connectTransport(mcpServer, transportType) {
 }
 
 export default connectTransport;
+
+export async function stopHttpServer() {
+	return new Promise((resolve) => {
+		if (httpServer) {
+			httpServer.close(() => {
+				httpServer = undefined;
+				resolve();
+			});
+		} else {
+			resolve();
+		}
+	});
+}
