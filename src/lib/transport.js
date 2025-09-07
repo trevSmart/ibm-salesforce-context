@@ -4,6 +4,40 @@
 // HTTP.
 
 /**
+ * Finds the next available port starting from the given port
+ * @param {number} startPort - Port to start checking from
+ * @param {number} maxAttempts - Maximum number of ports to check
+ * @returns {Promise<number>} Available port number
+ */
+async function findAvailablePort(startPort, maxAttempts = 10) {
+	const {createServer} = await import('node:net');
+
+	for (let i = 0; i < maxAttempts; i++) {
+		const port = startPort + i;
+		try {
+			await new Promise((resolve, reject) => {
+				const server = createServer();
+				server.listen(port, () => {
+					server.close(() => resolve(port));
+				});
+				server.on('error', (err) => {
+					if (err.code === 'EADDRINUSE') {
+						reject(new Error(`Port ${port} is in use`));
+					} else {
+						reject(err);
+					}
+				});
+			});
+			return port;
+		} catch {
+			if (i === maxAttempts - 1) {
+				throw new Error(`No available ports found starting from ${startPort}. Tried ${maxAttempts} ports.`);
+			}
+		}
+	}
+}
+
+/**
  * Connects the provided MCP server to the requested transport.
  * Handlers should be registered on the server before this function is called.
  *
@@ -78,8 +112,18 @@ export async function connectTransport(mcpServer, transportType) {
 			app.get('/mcp', handleSessionRequest);
 			app.delete('/mcp', handleSessionRequest);
 
-			const port = process.env.MCP_HTTP_PORT || 3000;
-			app.listen(port);
+			const requestedPort = Number.parseInt(process.env.MCP_HTTP_PORT) || 3000;
+			try {
+				const port = await findAvailablePort(requestedPort);
+				if (port !== requestedPort) {
+					console.log(`⚠️  Port ${requestedPort} is occupied. Using port ${port} instead.`);
+				}
+				app.listen(port, () => {
+					console.log(`🚀 MCP HTTP server running on port ${port}`);
+				});
+			} catch (error) {
+				throw new Error(`Failed to start HTTP server: ${error.message}`);
+			}
 			return;
 		}
 		default:

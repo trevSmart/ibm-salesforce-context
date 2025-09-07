@@ -61,7 +61,7 @@ export async function main(rawArgs) {
 			console.log('Options:');
 			console.log('  --transport TYPE     Transport type: stdio or http (overrides MCP_TRANSPORT)');
 			console.log('  --log-level LEVEL    Set log level (overrides LOG_LEVEL)');
-			console.log('  --port PORT         Set HTTP port for http transport (overrides MCP_HTTP_PORT)');
+			console.log('  --port PORT         Set HTTP port for http transport (auto-finds available if occupied)');
 			console.log('  --workspace PATHS   Set workspace paths (overrides WORKSPACE_FOLDER_PATHS)');
 			console.log('  --help              Show this help message');
 			console.log('  --version           Show version information');
@@ -75,7 +75,7 @@ export async function main(rawArgs) {
 			console.log('Environment Variables (overridden by CLI arguments):');
 			console.log('  MCP_TRANSPORT           Transport type: stdio or http (default: stdio)');
 			console.log('  LOG_LEVEL              Log level (default: info)');
-			console.log('  MCP_HTTP_PORT          HTTP port for http transport (default: 3000)');
+			console.log('  MCP_HTTP_PORT          HTTP port for http transport (auto-finds available if occupied, default: 3000)');
 			console.log('  WORKSPACE_FOLDER_PATHS Workspace paths (comma-separated)');
 			process.exit(0);
 		}

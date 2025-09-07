@@ -75,6 +75,9 @@ test_research4 --transport http
 # Use HTTP transport with custom port
 test_research4 --transport http --port 8080
 
+# HTTP transport automatically finds available port if default is occupied
+test_research4 --transport http  # Will use 3001, 3002, etc. if 3000 is busy
+
 # Set log level
 test_research4 --transport stdio --log-level debug
 
@@ -94,7 +97,7 @@ test_research4 --version
 |----------|-------------|---------|---------|
 | `--transport TYPE` | Transport type: `stdio` or `http` | `stdio` | `--transport http` |
 | `--log-level LEVEL` | Set log level | `info` | `--log-level debug` |
-| `--port PORT` | HTTP port for http transport | `3000` | `--port 8080` |
+| `--port PORT` | HTTP port for http transport (auto-finds available if occupied) | `3000` | `--port 8080` |
 | `--workspace PATHS` | Workspace paths (comma-separated) | - | `--workspace /path/to/project` |
 | `--help` | Show help message | - | `--help` |
 | `--version` | Show version information | - | `--version` |
@@ -107,8 +110,24 @@ Environment variables can be used for default configuration (overridden by CLI a
 |----------|-------------|---------|---------|
 | `MCP_TRANSPORT` | Transport type: `stdio` or `http` | `stdio` | `MCP_TRANSPORT=http` |
 | `LOG_LEVEL` | Log level | `info` | `LOG_LEVEL=debug` |
-| `MCP_HTTP_PORT` | HTTP port for http transport | `3000` | `MCP_HTTP_PORT=8080` |
+| `MCP_HTTP_PORT` | HTTP port for http transport (auto-finds available if occupied) | `3000` | `MCP_HTTP_PORT=8080` |
 | `WORKSPACE_FOLDER_PATHS` | Workspace paths (comma-separated) | - | `WORKSPACE_FOLDER_PATHS=/path/to/project` |
+
+#### Automatic Port Management
+
+When using HTTP transport, the server automatically handles port conflicts:
+
+- **Default Behavior**: Starts on port 3000 (or specified port)
+- **Port Conflict Detection**: If the requested port is occupied, automatically finds the next available port
+- **User Notification**: Displays a warning message when using an alternative port
+- **Port Range**: Checks up to 10 consecutive ports starting from the requested port
+- **Error Handling**: Clear error messages if no ports are available
+
+Example output when port 3000 is occupied:
+```
+⚠️  Port 3000 is occupied. Using port 3001 instead.
+🚀 MCP HTTP server running on port 3001
+```
 
 #### Priority Order
 

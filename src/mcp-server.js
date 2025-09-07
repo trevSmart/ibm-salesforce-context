@@ -311,7 +311,7 @@ export async function setupServer(transport) {
 		resolveServerReady();
 	}
 
-	let connectedMessage = transport === 'stdio' ? 'stdio transport' : `HTTP transport on port ${process.env.MCP_HTTP_PORT || '3000'}`;
+	let connectedMessage = transport === 'stdio' ? 'stdio transport' : `HTTP transport`;
 	connectedMessage = `Connected to ${connectedMessage} and ready`;
 	logger.info(connectedMessage);
 	return {protocolVersion, serverInfo, capabilities};
