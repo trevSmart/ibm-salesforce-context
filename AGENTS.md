@@ -4,7 +4,7 @@
 
 ### Overview
 
-IBM Salesforce MCP Server is a Model Context Protocol (MCP) server built in Node.js that provides context AI agents (usually IDE AI agents) to help the user complete Salesforce related tasks, connecting to the Salesforce org either retrieving the necessary information or performing operations.
+IBM Salesforce MCP Server is a Model Context Protocol (MCP) server built in Node.js that provides context AI agents (usually IDE AI agents) to help the user complete Salesforce related tasks, connecting to the Salesforce org either retrieving the necessary information or perfsorming operations.
 
 - Built in Node.js
 - Implements [Model Context Protocol (MCP)](https://modelcontextprotocol.io/specification/) through its official Typescript SDK [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk). Extensive use of the protocol features:
@@ -43,8 +43,9 @@ IBM Salesforce MCP Server is a Model Context Protocol (MCP) server built in Node
 - Automatic daily SObject definition retrieval
 - Built-in issue reporting tool
 
-## Coding
+## Development
 
+- All literals including comments and documentation must be in English.
 - To run linting run:
     ```
     npm run lint:fix

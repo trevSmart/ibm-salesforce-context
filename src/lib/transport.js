@@ -114,6 +114,28 @@ export async function connectTransport(mcpServer, transportType) {
 			app.get('/mcp', handleSessionRequest);
 			app.delete('/mcp', handleSessionRequest);
 
+			// Health check endpoint
+			app.get('/healthz', async (_req, res) => {
+				try {
+					// Basic health check - server is running and can handle requests
+					const healthStatus = {
+						status: 'healthy',
+						timestamp: new Date().toISOString(),
+						activeSessions: Object.keys(transports).length,
+						serverType: 'MCP HTTP Server',
+						version: process.env.npm_package_version || 'unknown'
+					};
+
+					res.status(200).json(healthStatus);
+				} catch (error) {
+					res.status(503).json({
+						status: 'unhealthy',
+						timestamp: new Date().toISOString(),
+						error: error.message
+					});
+				}
+			});
+
 			const requestedPort = Number.parseInt(process.env.MCP_HTTP_PORT, 10) || 3000;
 			try {
 				const port = await findAvailablePort(requestedPort);

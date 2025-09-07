@@ -1,66 +1,66 @@
-# Execució de Tests amb Client MCP Compartit
+# Test Execution with Shared MCP Client
 
-Aquest projecte utilitza un client MCP compartit per a tots els tests, millorant significativament el rendiment en executar múltiples tests.
+This project uses a shared MCP client for all tests, significantly improving performance when running multiple tests.
 
-## Com funciona
+## How it works
 
-En lloc de crear un nou client MCP per a cada fitxer de test, utilitzem un sol client global que es comparteix entre tots els tests. Això s'aconsegueix mitjançant:
+Instead of creating a new MCP client for each test file, we use a single global client that is shared across all tests. This is achieved through:
 
-1. Un client MCP global creat a `__tests__/setup.js`
-2. Configuració de Jest per utilitzar aquest fitxer de configuració global
-3. Cada fitxer de test accedeix al client global en lloc de crear-ne un de nou
+1. A global MCP client created in `__tests__/setup.js`
+2. Jest configuration to use this global configuration file
+3. Each test file accesses the global client instead of creating a new one
 
-## Avantatges
+## Advantages
 
-- **Rendiment millorat**: Només s'inicia un servidor MCP per a tots els tests
-- **Menys recursos**: Menys processos i connexions simultànies
-- **Tests més ràpids**: Eliminació de l'overhead de crear i destruir clients per cada test
+- **Improved performance**: Only one MCP server is started for all tests
+- **Fewer resources**: Fewer processes and simultaneous connections
+- **Faster tests**: Elimination of overhead from creating and destroying clients for each test
 
-## Com executar els tests
+## How to run the tests
 
-Per executar tots els tests:
+To run all tests:
 
 ```bash
 npm test
 ```
 
-Per executar un test específic:
+To run a specific test:
 
 ```bash
-npm test -- -t "nom del test"
+npm test -- -t "test name"
 ```
 
-Per executar tests d'un fitxer específic:
+To run tests from a specific file:
 
 ```bash
 npm test -- __tests__/tools/apexDebugLogs.test.js
 ```
 
-## Estructura dels fitxers de test
+## Test file structure
 
-Cada fitxer de test segueix aquesta estructura:
+Each test file follows this structure:
 
 ```javascript
-describe('nomDelTool', () => {
+describe('toolName', () => {
   let client;
 
   beforeAll(() => {
-    // Utilitzar el client global compartit
+    // Use the global shared client
     client = global.sharedMcpClient;
-    // No fem assert aquí, ho farem al primer test
+    // We don't assert here, we'll do it in the first test
   });
 
-  test('primer test', async () => {
-    // Verificar que el client està definit
+  test('first test', async () => {
+    // Verify that the client is defined
     expect(client).toBeDefined();
 
-    // Resta del test...
+    // Rest of the test...
   });
 
-  // Més tests...
+  // More tests...
 });
 ```
 
-## Manteniment
+## Maintenance
 
-Si necessites afegir un nou fitxer de test, segueix el patró anterior. No cal crear un nou client ni desconnectar-lo al final, ja que això es fa automàticament al fitxer de configuració global.
+If you need to add a new test file, follow the pattern above. There's no need to create a new client or disconnect it at the end, as this is done automatically in the global configuration file.
