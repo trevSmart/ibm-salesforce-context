@@ -16,10 +16,13 @@ describe('getRecentlyViewedRecords', () => {
 
 	test('getRecentlyViewedRecords', async () => {
 		const result = await client.callTool('getRecentlyViewedRecords', {});
-		const sc = result?.structuredContent;
-		expect(sc?.records).toBeTruthy();
-		expect(Array.isArray(sc.records)).toBe(true);
-		expect(typeof sc.totalSize).toBe('number');
-		expect(sc.totalSize).toBeGreaterThan(0);
+		const structuredContent = result?.structuredContent;
+
+		console.error('🔥 structuredContent', structuredContent);
+
+		expect(structuredContent?.records).toBeTruthy(structuredContent);
+		expect(Array.isArray(structuredContent.records)).toBe(true);
+		expect(typeof structuredContent.totalSize).toBe('number');
+		expect(structuredContent.totalSize).toBeGreaterThan(0);
 	});
 });

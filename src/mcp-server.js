@@ -96,14 +96,14 @@ async function setWorkspacePath(workspacePath) {
 	}
 }
 
-async function _updateOrgAndUserDetails() {
+async function updateOrgAndUserDetails() {
 	try {
 		const currentUsername = state.org?.user?.username;
 		const org = await getOrgAndUserDetails(true);
 		state.org = org;
 		if (currentUsername !== org?.user?.username) {
 			clearResources();
-			await withTimeout(validateUserPermissions(org.user.username), 10000, 'User validation timeout');
+			await withTimeout(validateUserPermissions(org.user.username), 4000, 'User validation timeout');
 		}
 		// Update the watcher with the new org alias
 		if (targetOrgWatcher && org?.alias) {
@@ -173,12 +173,10 @@ export function clearResources() {
 function registerHandlers() {
 	mcpServer.server.setNotificationHandler(RootsListChangedNotificationSchema, async (listRootsResult) => {
 		try {
-			if (client.supportsCapability('roots')) {
-				try {
-					listRootsResult = await mcpServer.server.listRoots();
-				} catch (error) {
-					logger.debug(`Requested roots list but client returned error: ${JSON.stringify(error, null, 3)}`);
-				}
+			try {
+				listRootsResult = await withTimeout(mcpServer.server.listRoots(), 4000, 'Roots list timeout');
+			} catch (error) {
+				logger.debug(`Requested roots list but client returned error: ${JSON.stringify(error, null, 3)}`);
 			}
 			if (!workspacePathSet && listRootsResult.roots?.[0]?.uri.startsWith('file://')) {
 				setWorkspacePath(listRootsResult.roots[0].uri);
@@ -276,21 +274,21 @@ function registerHandlers() {
 				setWorkspacePath(process.env.WORKSPACE_FOLDER_PATHS);
 			} else if (client.supportsCapability('roots')) {
 				try {
-					await mcpServer.server.listRoots();
+					await withTimeout(mcpServer.server.listRoots(), 4000, 'Roots list timeout');
 				} catch (error) {
 					logger.debug(`Requested roots list but client returned error: ${JSON.stringify(error, null, 3)}`);
 				}
 			}
 
-			// try {
-			// 	targetOrgWatcher.start(updateOrgAndUserDetails, state.org?.alias);
-			// 	await withTimeout(updateOrgAndUserDetails(), 10000, 'Org and user details update timeout');
-			// } catch (error) {
-			// 	logger.error(error, 'Error during org setup');
-			// 	if (typeof resolveOrgReady === 'function') {
-			// 		resolveOrgReady();
-			// 	}
-			// }
+			try {
+				targetOrgWatcher.start(updateOrgAndUserDetails, state.org?.alias);
+				await withTimeout(updateOrgAndUserDetails(), 15000, 'Org and user details update timeout');
+			} catch (error) {
+				logger.error(error, 'Error during org setup');
+				if (typeof resolveOrgReady === 'function') {
+					resolveOrgReady();
+				}
+			}
 
 			return {protocolVersion, serverInfo, capabilities};
 		} catch (error) {
@@ -307,9 +305,6 @@ let resolveOrgReady;
 const orgReadyPromise = new Promise((resolve) => (resolveOrgReady = resolve)); // org details loaded/attempted
 
 //Server initialization function
-// This server supports both stdio and HTTP transports
-// 'transport' parameter can be either 'stdio' or 'http'
-
 export async function setupServer(transport) {
 	registerHandlers();
 

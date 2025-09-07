@@ -7,7 +7,8 @@ export default defineConfig({
 		include: ['test/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
 		coverage: {
 			enabled: true,
-			reporter: ['text', 'html', 'lcov'],
+			reporter: ['text'],
+			reportsDirectory: 'node_modules/.vitest/coverage', //dummy
 			include: ['*.js', '*.ts', 'src/**/*.js', 'src/**/*.ts'],
 			provider: 'v8',
 			all: true,
@@ -16,9 +17,9 @@ export default defineConfig({
 				'**/__tests__/**',
 				'node_modules/**',
 				'dist/**',
-				'coverage/**'
-			],
-			reportsDirectory: './coverage'
+				'vitest.config.ts',
+				'index.js'
+			]
 		}
 	}
 });

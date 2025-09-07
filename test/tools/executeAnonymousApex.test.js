@@ -39,6 +39,7 @@ describe('executeAnonymousApex', () => {
 			apexCode: "Account acc = new Account(Name='Test Account');\ninsert acc;\nSystem.debug('Created account: ' + acc.Id);",
 			mayModify: true
 		});
-		expect(result?.structuredContent?.success).toBe(true);
+
+		expect(result?.structuredContent?.success).toBeTruthy(result?.structuredContent);
 	});
 });

@@ -4,7 +4,7 @@ import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js';
 
 describe('apexDebugLogs', () => {
 	let client;
-	let logsList; // Variable compartida per dependències
+	let logsList; // Shared variable for test dependencies
 
 	beforeAll(async () => {
 		// Create and connect to the MCP server
@@ -15,7 +15,7 @@ describe('apexDebugLogs', () => {
 		await disconnectMcpClient(client);
 	});
 
-	// status no depèn de res → pot córrer en paral·lel
+	// status doesn't depend on anything → can run in parallel
 	describe.concurrent('read-only', () => {
 		test('status', async () => {
 			const result = await client.callTool('apexDebugLogs', { action: 'status' });
@@ -30,10 +30,11 @@ describe('apexDebugLogs', () => {
 
 	test('list', async () => {
 		const result = await client.callTool('apexDebugLogs', { action: 'list' });
-		expect(result?.structuredContent?.logs).toBeTruthy();
+		expect(result).toBeTruthy();
+		expect(result.structuredContent).toBeTruthy();
 		expect(Array.isArray(result.structuredContent.logs)).toBe(true);
 
-		// Guardar el resultat per altres tests
+		// Save the result for other tests
 		logsList = result.structuredContent.logs;
 	});
 

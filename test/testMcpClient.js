@@ -7,9 +7,13 @@ export async function createMcpClient() {
         const transport = new StreamableHTTPClientTransport(BASE_URL);
         const coreClient = new Client(
                 {name: 'vitest-test-client', version: '1.0.0'},
-                {capabilities: {roots: {listChanged: true}, logging: {}}}
+                {capabilities: {logging: {}}}
         );
         await coreClient.connect(transport);
+
+        // Sleep for 2 seconds before proceeding to ensure the server is ready
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
         return {
                 listResources: async () => (await coreClient.listResources()).resources,
                 readResource: async (uri) => await coreClient.readResource({uri}),

@@ -48,4 +48,15 @@ describe('describeObject', () => {
 		expect(result?.structuredContent).toBeTruthy();
 		expect(result?.structuredContent?.wasCached).toBeTruthy();
 	});
+
+	test('withtoolingApi object', async () => {
+		const result = await client.callTool('describeObject', {
+			sObjectName: 'ApexLog',
+			useToolingApi: true
+		});
+		expect(result).toBeTruthy();
+		expect(result?.structuredContent).toBeTruthy();
+		expect(Array.isArray(result?.structuredContent?.fields)).toBe(true);
+		expect(result?.structuredContent?.fields.length).toBeGreaterThan(0);
+	});
 });

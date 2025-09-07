@@ -67,7 +67,8 @@ class Client {
 				return Boolean(this.capabilities?.logging) || this.is(['Visual Studio Code', 'Cursor', 'microscope']);
 
 			case 'resource_links':
-				return this.is(['MiCroscoPe']) || (this.is(['Visual Studio Code']) && semver.gte(this.clientInfo.version, '1.103.0'));
+				return this.is(['Visual Studio Code']) && semver.gte(this.clientInfo.version, '1.103.0');
+			//TODO this.is(['MiCroscoPe']) ||
 
 			default:
 				return Boolean(this.capabilities?.[capabilityName]);
