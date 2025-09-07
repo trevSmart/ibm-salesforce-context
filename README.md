@@ -129,6 +129,91 @@ Example output when port 3000 is occupied:
 🚀 MCP HTTP server running on port 3001
 ```
 
+#### HTTP Endpoints
+
+When running in HTTP mode, the server provides several useful endpoints:
+
+##### Root Status Page
+```bash
+# Open in browser or use curl
+curl http://localhost:3000/
+```
+
+Returns a beautiful HTML dashboard showing:
+- Server status and uptime
+- Salesforce CLI version and org connection status
+- Available MCP tools and resources
+- Environment information
+- Real-time status updates
+
+The root page serves as the default landing page when accessing the server in a web browser.
+
+##### Health Check Endpoint
+```bash
+curl http://localhost:3000/healthz
+```
+
+Returns basic health information:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2024-01-15T10:30:00.000Z",
+  "activeSessions": 2,
+  "serverType": "MCP HTTP Server",
+  "version": "1.0.0"
+}
+```
+
+##### Detailed Status Endpoint
+```bash
+curl http://localhost:3000/status
+```
+
+Returns comprehensive server information including:
+- Server details (name, version, uptime)
+- Active MCP sessions
+- Salesforce CLI version and org connection status
+- Available MCP tools and resources
+- Environment information
+
+Example response:
+```json
+{
+  "server": {
+    "name": "IBM Salesforce MCP Server",
+    "version": "1.0.0",
+    "status": "running",
+    "uptime": 3600,
+    "transport": "HTTP",
+    "port": 3000
+  },
+  "salesforce": {
+    "cliVersion": "2.15.0",
+    "orgConnected": true,
+    "orgInfo": {
+      "username": "user@example.com",
+      "orgId": "00D000000000000EAA",
+      "instanceUrl": "https://test.salesforce.com"
+    }
+  },
+  "mcp": {
+    "tools": {
+      "count": 15,
+      "available": [
+        {"name": "executeSoqlQuery", "description": "Execute SOQL queries"},
+        {"name": "describeObject", "description": "Get SObject metadata"}
+      ]
+    },
+    "resources": {
+      "count": 3,
+      "available": [
+        {"uri": "salesforce://org", "name": "Current Org", "description": "Current Salesforce org information"}
+      ]
+    }
+  }
+}
+```
+
 #### Priority Order
 
 Configuration values are applied in the following priority order:
