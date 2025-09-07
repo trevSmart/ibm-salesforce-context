@@ -15,7 +15,7 @@ describe('apex-run-script', () => {
 	});
 
 	test('prompt', async () => {
-		const result = await client.callTool('apex-run-script', {
+		const result = await client.getPrompt('apex-run-script', {
 			currentBehavior: 'Current code does nothing',
 			desiredBehavior: 'Code should return a greeting message',
 			updateTests: 'Yes'
@@ -23,7 +23,21 @@ describe('apex-run-script', () => {
 		const hasMessages = result?.messages;
 		const isArray = Array.isArray(result?.messages);
 		const isValidMessages = hasMessages && isArray;
+
+
+
 		expect(isValidMessages).toBe(true);
 		expect(result.messages.length).toBeGreaterThan(0);
+		expect(['assistant', 'user']).toContain(result.messages[0].role);
+		expect(result.messages[0].content?.type).toBeTruthy();
+		expect(result.messages[0].content?.text).toBeTruthy();
+	});
+
+	test('prompt does not exist', async () => {
+		await expect(async () => {
+			await client.getPrompt('non-existent-prompt', {
+				currentBehavior: 'argValue'
+			});
+		}).rejects.toThrow();
 	});
 });

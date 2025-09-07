@@ -166,11 +166,11 @@ echo "$new_version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || {
 
 echo
 
-# Run tests using the configured test framework (if not skipped)
+# Run tests
 if [ "$SKIP_TESTS" = "false" ]; then
   echo "\033[95mRunning basic server functionality tests...\033[0m"
   TEST_OUTPUT=$(mktemp)
-  npm run test -- --silent | tee "$TEST_OUTPUT"
+  ./node_modules/.bin/vitest --silent --run | tee "$TEST_OUTPUT"
 
   # Check if tests passed successfully
   if ! grep -q '🎉 All tests passed!' "$TEST_OUTPUT"; then
@@ -373,7 +373,7 @@ if [ "$SKIP_TESTS" = "false" ]; then
   TEST_DIST_OUTPUT=$(mktemp)
   # Tell the runner to start the server from dist/index.js
   # Use an absolute path to avoid incorrect relative resolutions
-  MCP_TEST_SERVER_PATH="$(pwd)/dist/index.js" npm run test -- --silent | tee "$TEST_DIST_OUTPUT"
+  MCP_TEST_SERVER_PATH="$(pwd)/dist/index.js" ./node_modules/.bin/vitest -- --silent --run | tee "$TEST_DIST_OUTPUT"
 
   if ! grep -q '🎉 All tests passed!' "$TEST_DIST_OUTPUT"; then
     echo "\033[91m❌ Tests against the obfuscated build have failed.\033[0m"
@@ -482,7 +482,7 @@ if [ "$SKIP_TESTS" = "false" ]; then
   echo "   Running tests with \033[96mnpx -y -p $package_name@$new_version $bin_name --stdio\033[0m"
   TEST_NPX_OUTPUT=$(mktemp)
   MCP_TEST_SERVER_SPEC="npx:$package_name@$new_version#$bin_name" \
-    npm run test -- --silent | tee "$TEST_NPX_OUTPUT"
+    .node_modules/.bin/vitest -- --silent --run | tee "$TEST_NPX_OUTPUT"
 
   if ! grep -q '🎉 All tests passed!' "$TEST_NPX_OUTPUT"; then
     echo "\033[91m❌ Tests against the published package via npx have failed.\033[0m"

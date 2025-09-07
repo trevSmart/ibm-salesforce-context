@@ -7,7 +7,7 @@ export async function createMcpClient() {
         const transport = new StreamableHTTPClientTransport(BASE_URL);
         const coreClient = new Client(
                 {name: 'vitest-test-client', version: '1.0.0'},
-                {capabilities: {logging: {}}}
+                {capabilities: {logging: {}}, prompts: {}}
         );
         await coreClient.connect(transport);
 
@@ -18,6 +18,7 @@ export async function createMcpClient() {
                 listResources: async () => (await coreClient.listResources()).resources,
                 readResource: async (uri) => await coreClient.readResource({uri}),
                 callTool: async (name, args) => coreClient.callTool({name, arguments: args}),
+                getPrompt: async (name, args) => coreClient.getPrompt({name, arguments: args}),
                 listTools: async () => (await coreClient.listTools()).tools,
                 disconnect: async () => coreClient.close()
         };
