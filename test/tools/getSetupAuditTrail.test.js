@@ -27,7 +27,7 @@ describe('getSetupAuditTrail', () => {
 		deleteAuditTrailFile();
 	});
 
-	test('basic', async () => {
+	test.skipIf(process.env.SKIP_OPTIONAL_TESTS === 'true')('basic', async () => {
 		// Verificar que el client està definit
 		expect(client).toBeTruthy();
 

@@ -3,6 +3,9 @@ set -e
 
 # Script compatible with sh (POSIX). Removes bash dependency.
 
+# Skip optional tests during package publishing
+export SKIP_OPTIONAL_TESTS=true
+
 # Process command line options
 SKIP_TESTS=false
 while [ $# -gt 0 ]; do

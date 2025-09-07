@@ -36,7 +36,7 @@ async function installPlaywrightBrowsers() {
 }
 
 // Try clicking the first candidate link found across page and frames
-async function clickDownloadCandidate(page, timeoutPerClick = 1000) {
+async function clickDownloadCandidate(page, timeoutPerClick = 2000) {
 	const selectors = ['a:has-text("Download setup audit trail")', 'a[href*="csv"]', 'a[href*="download"]', 'a[href*="audit"]'];
 
 	const contexts = [page, ...page.frames()];
@@ -86,17 +86,17 @@ async function retrieveFile() {
 		const {instanceUrl, accessToken} = state.org;
 		const frontdoorUrl = `${instanceUrl}/secur/frontdoor.jsp?sid=${encodeURIComponent(accessToken)}&retURL=${encodeURIComponent(setupUrl)}`;
 		await page.goto(frontdoorUrl, {waitUntil: 'domcontentloaded'});
-		await page.waitForURL((url) => url.pathname.includes(setupUrl), {timeout: 60_000});
+		await page.waitForURL((url) => url.pathname.includes(setupUrl), {timeout: 15_000});
 
 		// Attempt clicking candidates while waiting for a download event
 		const download = await Promise.race([
 			(async () => {
-				const dl = await page.waitForEvent('download', {timeout: 60_000});
+				const dl = await page.waitForEvent('download', {timeout: 5_000});
 				return dl;
 			})(),
 			(async () => {
 				const start = Date.now();
-				const maxWaitMs = 20_000;
+				const maxWaitMs = 5_000;
 				while (Date.now() - start < maxWaitMs) {
 					const clicked = await clickDownloadCandidate(page);
 					if (clicked) {
