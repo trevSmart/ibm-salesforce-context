@@ -138,6 +138,7 @@ IBM Salesforce MCP Server is a Model Context Protocol (MCP) server built in Node
 - Use curl to send valid MCP requests with JSON-RPC messages to the server. For example:
 
   - Initialization request to get the session ID:
+
     ```
     curl -X POST http://localhost:3000/mcp \
     -H "Content-Type: application/json" \
