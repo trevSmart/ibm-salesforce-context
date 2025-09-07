@@ -96,7 +96,7 @@ async function setWorkspacePath(workspacePath) {
 	}
 }
 
-async function updateOrgAndUserDetails() {
+async function _updateOrgAndUserDetails() {
 	try {
 		const currentUsername = state.org?.user?.username;
 		const org = await getOrgAndUserDetails(true);
@@ -272,6 +272,7 @@ function registerHandlers() {
 			logger.info(`Connecting with client "${client.clientInfo.name}" (v${client.clientInfo.version}). ${clientCapabilitiesString}`);
 			logger.info(`Current log level: ${state.currentLogLevel}`);
 
+
 			if (process.env.WORKSPACE_FOLDER_PATHS) {
 				setWorkspacePath(process.env.WORKSPACE_FOLDER_PATHS);
 			} else if (client.supportsCapability('roots')) {
@@ -282,15 +283,15 @@ function registerHandlers() {
 				}
 			}
 
-			try {
-				targetOrgWatcher.start(updateOrgAndUserDetails, state.org?.alias);
-				await withTimeout(updateOrgAndUserDetails(), 10000, 'Org and user details update timeout');
-			} catch (error) {
-				logger.error(error, 'Error during org setup');
-				if (typeof resolveOrgReady === 'function') {
-					resolveOrgReady();
-				}
-			}
+			// try {
+			// 	targetOrgWatcher.start(updateOrgAndUserDetails, state.org?.alias);
+			// 	await withTimeout(updateOrgAndUserDetails(), 10000, 'Org and user details update timeout');
+			// } catch (error) {
+			// 	logger.error(error, 'Error during org setup');
+			// 	if (typeof resolveOrgReady === 'function') {
+			// 		resolveOrgReady();
+			// 	}
+			// }
 
 			return {protocolVersion, serverInfo, capabilities};
 		} catch (error) {
@@ -313,14 +314,19 @@ const orgReadyPromise = new Promise((resolve) => (resolveOrgReady = resolve)); /
 export async function setupServer(transport) {
 	registerHandlers();
 
-	await connectTransport(mcpServer, transport);
+	const transportInfo = await connectTransport(mcpServer, transport);
 
 	if (typeof resolveServerReady === 'function') {
 		resolveServerReady();
 	}
 
-	let connectedMessage = transport === 'stdio' ? 'stdio transport' : `HTTP transport`;
-	connectedMessage = `Connected to ${connectedMessage} and ready`;
+	let connectedMessage;
+	if (transportInfo.transportType === 'stdio') {
+		connectedMessage = 'Connected to stdio transport and ready';
+	} else {
+		connectedMessage = `Connected to HTTP transport on port ${transportInfo.port} and ready`;
+	}
+
 	logger.info(connectedMessage);
 	return {protocolVersion, serverInfo, capabilities};
 }

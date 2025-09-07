@@ -19,6 +19,30 @@ interface McpResponse {
 	};
 }
 
+// Helper function to parse SSE responses
+async function parseSseResponse(response: { text(): Promise<string> }): Promise<McpResponse | null> {
+	const responseText = await response.text();
+
+	// First try to parse as regular JSON
+	try {
+		return JSON.parse(responseText) as McpResponse;
+	} catch {
+		// If that fails, try SSE parsing
+		const lines = responseText.split('\n');
+
+		for (const line of lines) {
+			if (line.startsWith('data: ')) {
+				try {
+					return JSON.parse(line.slice(6)) as McpResponse;
+				} catch {
+					// Skip invalid JSON lines
+				}
+			}
+		}
+	}
+	return null;
+}
+
 describe('MCP HTTP Connection Test', () => {
         let sessionId: string | null = null;
         const baseUrl = `http://localhost:${process.env.MCP_HTTP_PORT || '3000'}/mcp`;
@@ -66,17 +90,19 @@ describe('MCP HTTP Connection Test', () => {
 			body: JSON.stringify(initRequest)
 		});
 
-		expect(response.ok).toBe(true);
+		expect(response.ok).toBeTruthyAndDump(true);
 
-		const data = await response.json() as McpResponse;
-		expect(data.jsonrpc).toBe('2.0');
-		expect(data.result).toBeDefined();
-		expect(data.result.protocolVersion).toBe('2025-06-18');
-		expect(data.result.serverInfo).toBeDefined();
-		expect(data.result.serverInfo.name).toBe('IBM Salesforce Context');
+		// Parse SSE response
+		const data = await parseSseResponse(response);
+		expect(data).toBeDefined();
+		expect(data?.jsonrpc).toBe('2.0');
+		expect(data?.result).toBeDefined();
+		expect(data?.result?.protocolVersion).toBe('2025-06-18');
+		expect(data?.result?.serverInfo).toBeDefined();
+		expect(data?.result?.serverInfo?.name).toBe('IBM Salesforce Context');
 
-		// Extract session ID for subsequent requests
-		sessionId = data.result.sessionId;
+		// Extract session ID from response headers
+		sessionId = response.headers.get('mcp-session-id') || response.headers.get('session-id');
 		expect(sessionId).toBeDefined();
 		expect(typeof sessionId).toBe('string');
 
@@ -104,20 +130,21 @@ describe('MCP HTTP Connection Test', () => {
 
 		expect(response.ok).toBe(true);
 
-		const data = await response.json() as McpResponse;
-		expect(data.jsonrpc).toBe('2.0');
-		expect(data.result).toBeDefined();
-		expect(data.result.tools).toBeDefined();
-		expect(Array.isArray(data.result.tools)).toBe(true);
+		const data = await parseSseResponse(response);
+		expect(data).toBeDefined();
+		expect(data?.jsonrpc).toBe('2.0');
+		expect(data?.result).toBeDefined();
+		expect(data?.result?.tools).toBeDefined();
+		expect(Array.isArray(data?.result?.tools)).toBe(true);
 
 		// Check for expected tools
-		const toolNames = data.result.tools.map((tool: { name: string }) => tool.name);
+		const toolNames = data?.result?.tools?.map((tool: { name: string }) => tool.name) || [];
 		expect(toolNames).toContain('salesforceContextUtils');
 		expect(toolNames).toContain('executeSoqlQuery');
 		expect(toolNames).toContain('describeObject');
 		expect(toolNames).toContain('getRecord');
 
-		console.log(`✅ Found ${data.result.tools.length} available tools`);
+		console.log(`✅ Found ${data?.result?.tools?.length || 0} available tools`);
 		console.log('Available tools:', toolNames);
 	});
 
@@ -142,13 +169,14 @@ describe('MCP HTTP Connection Test', () => {
 
 		expect(response.ok).toBe(true);
 
-		const data = await response.json() as McpResponse;
-		expect(data.jsonrpc).toBe('2.0');
-		expect(data.result).toBeDefined();
-		expect(data.result.resources).toBeDefined();
-		expect(Array.isArray(data.result.resources)).toBe(true);
+		const data = await parseSseResponse(response);
+		expect(data).toBeDefined();
+		expect(data?.jsonrpc).toBe('2.0');
+		expect(data?.result).toBeDefined();
+		expect(data?.result?.resources).toBeDefined();
+		expect(Array.isArray(data?.result?.resources)).toBe(true);
 
-		console.log(`✅ Found ${data.result.resources.length} available resources`);
+		console.log(`✅ Found ${data?.result?.resources?.length || 0} available resources`);
 	});
 
 	it('should list available prompts', async () => {
@@ -172,18 +200,19 @@ describe('MCP HTTP Connection Test', () => {
 
 		expect(response.ok).toBe(true);
 
-		const data = await response.json() as McpResponse;
-		expect(data.jsonrpc).toBe('2.0');
-		expect(data.result).toBeDefined();
-		expect(data.result.prompts).toBeDefined();
-		expect(Array.isArray(data.result.prompts)).toBe(true);
+		const data = await parseSseResponse(response);
+		expect(data).toBeDefined();
+		expect(data?.jsonrpc).toBe('2.0');
+		expect(data?.result).toBeDefined();
+		expect(data?.result?.prompts).toBeDefined();
+		expect(Array.isArray(data?.result?.prompts)).toBe(true);
 
 		// Check for expected prompts
-		const promptNames = data.result.prompts.map((prompt: { name: string }) => prompt.name);
+		const promptNames = data?.result?.prompts?.map((prompt: { name: string }) => prompt.name) || [];
 		expect(promptNames).toContain('apex-run-script');
 		expect(promptNames).toContain('tools-basic-run');
 
-		console.log(`✅ Found ${data.result.prompts.length} available prompts`);
+		console.log(`✅ Found ${data?.result?.prompts?.length || 0} available prompts`);
 		console.log('Available prompts:', promptNames);
 	});
 
@@ -206,9 +235,24 @@ describe('MCP HTTP Connection Test', () => {
 
 		expect(response.status).toBe(400);
 
-		const data = await response.json() as McpResponse;
-		expect(data.error).toBeDefined();
-		expect(data.error.message).toContain('No valid session ID');
+		// For error responses, try both SSE and JSON parsing
+		const responseClone = response.clone();
+		let data = await parseSseResponse(response);
+		if (!data) {
+			// If SSE parsing fails, try JSON parsing
+			try {
+				const responseText = await responseClone.text();
+				data = JSON.parse(responseText) as McpResponse;
+			} catch (_e) {
+				// If both fail, check the response text
+				const responseText = await responseClone.text();
+				console.log('Error response text:', responseText);
+			}
+		}
+
+		expect(data).toBeDefined();
+		expect(data?.error).toBeDefined();
+		expect(data?.error?.message).toContain('No valid session ID');
 
 		console.log('✅ Invalid session ID handled correctly');
 	});

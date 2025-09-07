@@ -1,6 +1,6 @@
 import {beforeAll, afterAll, expect} from 'vitest';
-import fs from 'node:fs';
-import path from 'node:path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import {setupServer, readyPromise, mcpServer} from '../src/mcp-server.js';
 import {stopHttpServer} from '../src/lib/transport.js';
 
@@ -61,6 +61,6 @@ expect.extend({
 
 declare module 'vitest' {
 	interface Assertion {
-		toBeTrueAndDump(dump: unknown): void;
+		toBeTruthyAndDump(dump: unknown): void;
 	}
 }

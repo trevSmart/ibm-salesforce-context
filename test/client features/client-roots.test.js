@@ -26,7 +26,8 @@ describe('Server tools', () => {
 		const firstTool = toolsList[0];
 		expect(firstTool).toHaveProperty('name');
 		expect(firstTool).toHaveProperty('description');
-		expect(firstTool).toHaveProperty('parameters');
+		// MCP spec: tools expose `inputSchema` (not `parameters`)
+		expect(firstTool).toHaveProperty('inputSchema');
 
 		// Verify some expected tools are present
 		const toolNames = toolsList.map((tool) => tool.name);

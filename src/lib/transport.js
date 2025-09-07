@@ -3,6 +3,9 @@
 // Express/crypto and avoids pulling in the stdio transport when running over
 // HTTP.
 
+import {createModuleLogger} from './logger.js';
+const logger = createModuleLogger(import.meta.url);
+
 /**
  * Finds the next available port starting from the given port
  * @param {number} startPort - Port to start checking from
@@ -51,7 +54,7 @@ export async function connectTransport(mcpServer, transportType) {
 		case 'stdio': {
 			const {StdioServerTransport} = await import('@modelcontextprotocol/sdk/server/stdio.js');
 			await mcpServer.connect(new StdioServerTransport()).then(() => new Promise((r) => setTimeout(r, 400)));
-			return;
+			return {transportType: 'stdio'};
 		}
 		case 'http': {
 			const express = (await import('express')).default;
@@ -60,6 +63,7 @@ export async function connectTransport(mcpServer, transportType) {
 			const {isInitializeRequest} = await import('@modelcontextprotocol/sdk/types.js');
 
 			const app = express();
+			let port;
 			app.use(express.json());
 
 			const transports = {};
@@ -75,6 +79,10 @@ export async function connectTransport(mcpServer, transportType) {
 						sessionIdGenerator: () => randomUUID(),
 						onsessioninitialized: (sid) => {
 							transports[sid] = transport;
+							// Store session ID for logging purposes
+							transport.sessionId = sid;
+							// Log the session ID when it's created
+							logger.info(`New HTTP session created with Session ID: ${sid}`);
 						}
 					});
 
@@ -162,7 +170,7 @@ export async function connectTransport(mcpServer, transportType) {
 						resourcesInfo = resourcesResponse.resources || [];
 					} catch (error) {
 						// If we can't get tools/resources info, continue without it
-						console.warn('Could not retrieve tools/resources info:', error.message);
+						logger.warn('Could not retrieve tools/resources info:', error.message);
 					}
 
 					const statusInfo = {
@@ -614,7 +622,7 @@ export async function connectTransport(mcpServer, transportType) {
 						resourcesInfo = resourcesResponse.resources || [];
 					} catch (error) {
 						// If we can't get tools/resources info, continue without it
-						console.warn('Could not retrieve tools/resources info:', error.message);
+						logger.warn('Could not retrieve tools/resources info:', error.message);
 					}
 
 					const statusInfo = {
@@ -683,17 +691,23 @@ export async function connectTransport(mcpServer, transportType) {
 
 			const requestedPort = Number.parseInt(process.env.MCP_HTTP_PORT, 10) || 3000;
 			try {
-				const port = await findAvailablePort(requestedPort);
+				port = await findAvailablePort(requestedPort);
 				if (port !== requestedPort) {
-					console.log(`⚠️  Port ${requestedPort} is occupied. Using port ${port} instead.`);
+					logger.warn(`Port ${requestedPort} is occupied. Using port ${port} instead.`);
 				}
 				httpServer = app.listen(port, () => {
-					console.log(`🚀 MCP HTTP server running on port ${port}`);
+					logger.info(`🚀 MCP HTTP server running on port ${port}`);
 				});
 			} catch (error) {
 				throw new Error(`Failed to start HTTP server: ${error.message}`);
 			}
-			return;
+
+			// Return transport info with function to get session ID
+			return {
+				transportType: 'http',
+				port,
+				getActiveSessionIds: () => Object.keys(transports)
+			};
 		}
 		default:
 			throw new Error(`Unsupported transport type: ${transportType}`);

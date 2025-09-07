@@ -6,6 +6,9 @@ import {state} from '../mcp-server.js';
 
 // Internal: builds log prefix with emoji and optional config prefix
 function getLogPrefix(logLevel) {
+	const now = new Date();
+	const timestamp = now.toTimeString().slice(0, 8); // HH:MM:SS format
+
 	const logLevelEmojis = {
 		emergency: '🔥',
 		alert: '⛔️',
@@ -19,9 +22,9 @@ function getLogPrefix(logLevel) {
 	const emoji = logLevelEmojis[logLevel] || '❓';
 	const logLevelPrefix = emoji.repeat(3);
 	if (config.logPrefix) {
-		return `(${config.logPrefix} · ${logLevelPrefix})`;
+		return `${timestamp}  (${config.logPrefix} · ${logLevelPrefix})`;
 	}
-	return `(${logLevelPrefix})`;
+	return `${timestamp}  (${logLevelPrefix})`;
 }
 
 // Base sink: sends logs to MCP if available, or stderr fallback
