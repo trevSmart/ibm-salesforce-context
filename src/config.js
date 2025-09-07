@@ -28,6 +28,10 @@ export default {
 		// Clear cache after successful non-GET requests
 		invalidateOnWrite: true
 	},
+	resources: {
+		// Maximum number of MCP resources to keep in memory
+		maxResources: 30
+	},
 	serverConstants: {
 		protocolVersion: '2025-06-18',
 		serverInfo: {

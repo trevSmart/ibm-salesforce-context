@@ -145,6 +145,15 @@ export function newResource(uri, name, description, mimeType = 'text/plain', con
 			text: content,
 			annotations
 		};
+
+		if (Object.keys(resources).length >= config.resources.maxResources) {
+			// Remove oldest resource (first key)
+			const oldestResourceUri = Object.keys(resources)[0];
+			delete resources[oldestResourceUri];
+			mcpServer.server.sendResourceListChanged();
+			logger.debug(`Removed oldest resource ${oldestResourceUri} to maintain limit of ${config.resources.maxResources} resources`);
+		}
+
 		resources[uri] = resource;
 		mcpServer.server.sendResourceListChanged();
 		return resource;
@@ -338,5 +347,18 @@ try {
 	logger.error('Failed to initialize task scheduler:', error);
 }
 */
+
+// Handle graceful shutdown
+process.on('SIGINT', async () => {
+	logger.info('Received SIGINT, cleaning up...');
+	await targetOrgWatcher.stop();
+	process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+	logger.info('Received SIGTERM, cleaning up...');
+	await targetOrgWatcher.stop();
+	process.exit(0);
+});
 
 export {mcpServer};

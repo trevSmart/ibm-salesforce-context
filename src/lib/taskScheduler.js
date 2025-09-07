@@ -288,6 +288,24 @@ class TaskScheduler {
 		this.jobs.clear();
 		logger.info('Task scheduler stopped');
 	}
+
+	/**
+	 * Cleanup method to prevent memory leaks
+	 */
+	cleanup() {
+		// Cancel any jobs that might be stuck
+		for (const [taskName, job] of this.jobs) {
+			if (job && typeof job.cancel === 'function') {
+				try {
+					job.cancel();
+				} catch (error) {
+					logger.warn(`Error canceling job ${taskName}: ${error.message}`);
+				}
+			}
+		}
+		this.jobs.clear();
+		logger.debug('Task scheduler cleanup completed');
+	}
 }
 
 export default TaskScheduler;

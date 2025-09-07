@@ -18,6 +18,9 @@ class TargetOrgWatcher extends EventEmitter {
 
 	async start(onChange, currentOrgAlias = null) {
 		try {
+			// Cleanup any existing watchers/listeners before starting
+			await this.stop();
+
 			this.configFilePath = path.join(process.cwd(), '.sf', 'config.json');
 			this.currentOrgAlias = currentOrgAlias;
 
@@ -56,6 +59,8 @@ class TargetOrgWatcher extends EventEmitter {
 			clearTimeout(this.debounceTimer);
 			this.debounceTimer = null;
 		}
+		// Cleanup all event listeners to prevent memory leaks
+		this.removeAllListeners();
 		this.isWatching = false;
 		this.emit('stopped');
 	}
