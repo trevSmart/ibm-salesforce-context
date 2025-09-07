@@ -8,7 +8,7 @@ import {createModuleLogger} from './lib/logger.js';
 import targetOrgWatcher from './lib/OrgWatcher.js';
 import {getOrgAndUserDetails} from './lib/salesforceServices.js';
 import {connectTransport} from './lib/transport.js';
-import {getAgentInstructions, validateUserPermissions} from './utils.js';
+import {getAgentInstructions, validateUserPermissions, withTimeout} from './utils.js';
 //Prompts
 //import { codeModificationPromptDefinition, codeModificationPrompt } from './prompts/codeModificationPrompt.js';
 import {apexRunScriptPrompt, apexRunScriptPromptDefinition} from './prompts/apex-run-script.js';
@@ -103,7 +103,7 @@ async function updateOrgAndUserDetails() {
 		state.org = org;
 		if (currentUsername !== org?.user?.username) {
 			clearResources();
-			await validateUserPermissions(org.user.username);
+			await withTimeout(validateUserPermissions(org.user.username), 10000, 'User validation timeout');
 		}
 		// Update the watcher with the new org alias
 		if (targetOrgWatcher && org?.alias) {
@@ -278,7 +278,7 @@ function registerHandlers() {
 
 			try {
 				targetOrgWatcher.start(updateOrgAndUserDetails, state.org?.alias);
-				await updateOrgAndUserDetails();
+				await withTimeout(updateOrgAndUserDetails(), 10000, 'Org and user details update timeout');
 			} catch (error) {
 				logger.error(error, 'Error during org setup');
 				if (typeof resolveOrgReady === 'function') {

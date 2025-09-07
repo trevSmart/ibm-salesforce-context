@@ -111,6 +111,7 @@ IBM Salesforce MCP Server is a Model Context Protocol (MCP) server built in Node
 - #### Vitest test scripts
 
   Tests are written with Vitest and are located in the `test` directory.
+  Currently tests only use stdio transport so they are not suitable for testing HTTP transport.
 
 - To run all tests use:
 

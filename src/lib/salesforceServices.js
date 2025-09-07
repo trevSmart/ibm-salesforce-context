@@ -6,6 +6,7 @@ import config from '../config.js';
 import {newResource, state} from '../mcp-server.js';
 import {createModuleLogger} from './logger.js';
 import {cleanupObsoleteTempFiles, ensureBaseTmpDir} from './tempManager.js';
+import {withTimeout} from '../utils.js';
 
 const exec = promisify(execCb);
 const logger = createModuleLogger(import.meta.url);
@@ -228,13 +229,13 @@ export async function getOrgAndUserDetails(skipCache = false) {
 		const getUserFullName = async () => {
 			// Escape username to avoid SOQL injection in string literal
 			const safeUsername = org.user.username.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-			const soqlUserResult = await executeSoqlQuery(`SELECT Id, Name, Profile.Name FROM User WHERE Username = '${safeUsername}'`);
+			const soqlUserResult = await withTimeout(executeSoqlQuery(`SELECT Id, Name, Profile.Name FROM User WHERE Username = '${safeUsername}'`), 10000, 'User query timeout');
 			const user = soqlUserResult?.records?.[0];
 			state.org.user = {
-				id: user.Id,
-				username: orgResult.username,
+				id: user?.Id,
+				username: orgResult?.username,
 				profileName: user.Profile?.Name,
-				name: user.Name
+				name: user?.Name
 			};
 			newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(state.org, null, 3));
 		};

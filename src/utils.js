@@ -5,21 +5,22 @@ import config from './config.js';
 import {createModuleLogger} from './lib/logger.js';
 import {cleanupObsoleteTempFiles, ensureBaseTmpDir} from './lib/tempManager.js';
 import {state} from './mcp-server.js';
+import {executeSoqlQuery} from './lib/salesforceServices.js';
 
 const logger = createModuleLogger(import.meta.url);
 
-// Avoid static import of salesforceServices to prevent ESM cycles during module init
-let _executeSoqlQuery = null;
-async function __getExecuteSoqlQuery() {
-	if (!_executeSoqlQuery) {
-		try {
-			const mod = await import('./lib/salesforceServices.js');
-			_executeSoqlQuery = mod.executeSoqlQuery;
-		} catch {
-			_executeSoqlQuery = null;
-		}
-	}
-	return _executeSoqlQuery;
+/**
+ * Helper function to add timeout to any promise
+ * @param {Promise} promise - The promise to add timeout to
+ * @param {number} ms - Timeout in milliseconds
+ * @param {string} errorMessage - Custom error message (optional)
+ * @returns {Promise} Promise that rejects with timeout error if timeout is reached
+ */
+export function withTimeout(promise, ms, errorMessage = 'Operation timeout') {
+	return Promise.race([
+		promise,
+		new Promise((_, reject) => setTimeout(() => reject(new Error(errorMessage)), ms))
+	]);
 }
 
 /**
@@ -35,8 +36,7 @@ export async function validateUserPermissions(username) {
 		// Escape backslashes first, then single quotes for SOQL string literals
 		const safeUsername = username.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 		const soql = `SELECT Id FROM PermissionSetAssignment WHERE Assignee.Username = '${safeUsername}' AND PermissionSet.Name = 'IBM_SalesforceMcpUser'`;
-		const execSoql = await __getExecuteSoqlQuery();
-		const query = execSoql ? await execSoql(soql) : null;
+		const query = await withTimeout(executeSoqlQuery(soql), 10000, 'Permission query timeout');
 		if (query?.records?.length) {
 			state.userValidated = true;
 		} else {
