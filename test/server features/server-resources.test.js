@@ -80,7 +80,7 @@ describe('Server Resources', () => {
 
 		// Trigger a resource creation by calling loadRecordPrefixesResource
 		// This should create a new resource and trigger a list change
-		const result = await client.callTool('salesforceMcpUtils', {
+		const result = await client.callTool('salesforceContextUtils', {
 			action: 'loadRecordPrefixesResource'
 		});
 

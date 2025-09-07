@@ -43,7 +43,6 @@ mcpInspectorConfig.json
 
 dist/
 tmp/
-ibm-salesforce-mcp.code-workspace
 *.old*
 *old.*
 *.new*

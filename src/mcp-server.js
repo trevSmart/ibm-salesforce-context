@@ -28,7 +28,7 @@ import {getRecordToolDefinition, getRecordToolHandler} from './tools/getRecord.j
 import {getSetupAuditTrailToolDefinition} from './tools/getSetupAuditTrail.js';
 import {invokeApexRestResourceToolDefinition} from './tools/invokeApexRestResource.js';
 import {runApexTestToolDefinition} from './tools/runApexTest.js';
-import {salesforceMcpUtilsToolDefinition, salesforceMcpUtilsToolHandler} from './tools/salesforceMcpUtils.js';
+import {salesforceContextUtilsToolDefinition, salesforceContextUtilsToolHandler} from './tools/salesforceContextUtils.js';
 
 // Define state object here instead of importing it
 export const state = {
@@ -189,7 +189,7 @@ function registerHandlers() {
 	mcpServer.registerPrompt('tools-basic-run', toolsBasicRunPromptDefinition, toolsBasicRunPromptHandler);
 
 	const StaticToolHandlers = {
-		salesforceMcpUtils: salesforceMcpUtilsToolHandler,
+		salesforceContextUtils: salesforceContextUtilsToolHandler,
 		executeSoqlQuery: executeSoqlQueryToolHandler,
 		describeObject: describeObjectToolHandler,
 		getRecord: getRecordToolHandler,
@@ -200,7 +200,7 @@ function registerHandlers() {
 	const callToolHandler = (tool) => {
 		return async (params, args) => {
 			try {
-				if (tool !== 'salesforceMcpUtils') {
+				if (tool !== 'salesforceContextUtils') {
 					if (!state.org.user.id) {
 						throw new Error('❌ Org and user details not available. The server may still be initializing.');
 					} else if (!state.userValidated) {
@@ -226,7 +226,7 @@ function registerHandlers() {
 		};
 	};
 
-	mcpServer.registerTool('salesforceMcpUtils', salesforceMcpUtilsToolDefinition, callToolHandler('salesforceMcpUtils'));
+	mcpServer.registerTool('salesforceContextUtils', salesforceContextUtilsToolDefinition, callToolHandler('salesforceContextUtils'));
 	mcpServer.registerTool('dmlOperation', dmlOperationToolDefinition, callToolHandler('dmlOperation'));
 	mcpServer.registerTool('deployMetadata', deployMetadataToolDefinition, callToolHandler('deployMetadata'));
 	mcpServer.registerTool('describeObject', describeObjectToolDefinition, callToolHandler('describeObject'));
@@ -259,7 +259,7 @@ function registerHandlers() {
 				protocolVersion: clientProtocolVersion
 			});
 
-			logger.info(`IBM Salesforce MCP server (v${config.serverConstants.serverInfo.version})`);
+			logger.info(`IBM Salesforce Context (v${config.serverConstants.serverInfo.version})`);
 			const clientCapabilitiesString = `Capabilities: ${JSON.stringify(client.capabilities, null, 3)}`;
 			logger.info(`Connecting with client "${client.clientInfo.name}" (v${client.clientInfo.version}). ${clientCapabilitiesString}`);
 			logger.info(`Current log level: ${state.currentLogLevel}`);

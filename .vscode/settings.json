@@ -2,7 +2,7 @@
     "squarl.bookmarks": [
         {
             "name": "Github repository",
-            "path": "https://github.com/trevsmart/ibm-salesforce-mcp",
+            "path": "https://github.com/trevsmart/ibm-salesforce-context",
             "description": "",
             "type": "link",
             "iconName": "github"

@@ -32,7 +32,8 @@ class Client {
 		const clientMapping = {
 			'cursor-vscode': 'Cursor',
 			'Visual Studio Code': 'Visual Studio Code',
-			'Visual Studio Code - Insiders': 'Visual Studio Code - Insiders'
+			'Visual Studio Code - Insiders': 'Visual Studio Code - Insiders',
+			'microscope': 'MiCroscoPe'
 		};
 
 		return clientMapping[clientName] || clientName;
@@ -63,10 +64,10 @@ class Client {
 			case 'resources':
 			case 'embeddedResources':
 			case 'logging':
-				return Boolean(this.capabilities?.logging) || this.is(['Visual Studio Code', 'Cursor', 'IBM MCP Test Client']);
+				return Boolean(this.capabilities?.logging) || this.is(['Visual Studio Code', 'Cursor', 'microscope']);
 
 			case 'resource_links':
-				return this.is(['IBM MCP Test Client']) || (this.is(['Visual Studio Code']) && semver.gte(this.clientInfo.version, '1.103.0'));
+				return this.is(['MiCroscoPe']) || (this.is(['Visual Studio Code']) && semver.gte(this.clientInfo.version, '1.103.0'));
 
 			default:
 				return Boolean(this.capabilities?.[capabilityName]);

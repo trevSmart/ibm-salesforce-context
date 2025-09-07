@@ -14,7 +14,7 @@ const logger = createModuleLogger(import.meta.url);
 class TaskScheduler {
 	constructor() {
 		this.config = new Conf({
-			projectName: 'ibm-salesforce-mcp',
+			projectName: 'ibm-salesforce-context',
 			schema: {
 				tasks: {
 					type: 'object',

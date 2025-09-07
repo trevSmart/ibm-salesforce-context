@@ -20,7 +20,7 @@ cleanup
 echo ""
 
 printf "\033[1mLoading environment variables\033[0m...\n"
-MCP_SALESFORCE_PATH="/Users/marcpla/Documents/Feina/Projectes/mcp/ibm-salesforce-mcp/"
+MCP_SALESFORCE_PATH="/Users/marcpla/Documents/Feina/Projectes/mcp/ibm-salesforce-context/"
 cd "$MCP_SALESFORCE_PATH"
 if [ -f ".env" ]; then
     # Load all variables at once
@@ -210,7 +210,7 @@ cleanup
 temp_file=$(mktemp)
 
 # Execute inspector in background and redirect output to temp file
-SERVER_COMMAND="node /Users/marcpla/Documents/Feina/Projectes/mcp/ibm-salesforce-mcp/index.js"
+SERVER_COMMAND="node /Users/marcpla/Documents/Feina/Projectes/mcp/ibm-salesforce-context/index.js"
 
 # Define allowed variables
 INSPECTOR_ENV_VARS=(WORKSPACE_FOLDER_PATHS SF_MCP_AGENTFORCE_AGENT_ID)
@@ -222,7 +222,7 @@ for var in "${INSPECTOR_ENV_VARS[@]}"; do
 done
 
 export MCP_AUTO_OPEN_ENABLED=false
-npx @modelcontextprotocol/inspector --config "$MCP_SALESFORCE_PATH/dev/mcpInspectorConfig.json" --server ibm-salesforce-mcp > "$temp_file" 2>&1 &
+npx @modelcontextprotocol/inspector --config "$MCP_SALESFORCE_PATH/dev/mcpInspectorConfig.json" --server ibm-salesforce-context > "$temp_file" 2>&1 &
 # npx @modelcontextprotocol/inspector $SERVER_COMMAND $INSPECTOR_ARGS > "$temp_file" 2>&1 &
 
 # Save process PID

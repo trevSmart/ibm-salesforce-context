@@ -17,7 +17,7 @@ Objective: call the maximum number of tools possible only with read actions or a
 
 Include (in this recommended order):
 
-1) salesforceMcpUtils (only safe actions)
+1) salesforceContextUtils (only safe actions)
    - action: "getCurrentDatetime"
    - action: "getOrgAndUserDetails"
    - action: "getState" (only to validate that basic state is returned; doesn't change anything)
@@ -89,7 +89,7 @@ Important: Don't call any of the following tools/actions as they can modify the 
    - createMetadata (all actions)
    - deployMetadata
    - Any tool or action that creates, updates, or deletes data/metadata
-   - salesforceMcpUtils: "reportIssue" (makes an external call; not necessary for this test)
+   - salesforceContextUtils: "reportIssue" (makes an external call; not necessary for this test)
    - dmlOperation (all actions - creates/updates/deletes records)
 
 Desired behavior: for each call, validate that the tool responds without error and, when applicable, reuse previous results (e.g., Id retrieved in getRecentlyViewedRecords) to feed the next tool. If any call cannot complete (e.g., non-existent object, no logs available), log it and continue with the rest of the tests without failing.

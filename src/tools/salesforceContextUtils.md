@@ -1,4 +1,4 @@
-# IBM Salesforce MCP Utils Tool
+# IBM Salesforce Context server utilities Tool
 
 Allows you to execute utility actions like:
   - getOrgAndUserDetails: Obtains the details of the Salesforce organization and the current user (Id, name, URL, profile, etc.).

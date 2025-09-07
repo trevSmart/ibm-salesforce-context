@@ -16,7 +16,7 @@ describe('Server Startup', () => {
 		expect(client).toBeTruthy();
 
 		// Test that we can call a simple tool to verify server is working
-		const result = await client.callTool('salesforceMcpUtils', {
+		const result = await client.callTool('salesforceContextUtils', {
 			action: 'getState'
 		});
 		expect(result).toBeTruthy();

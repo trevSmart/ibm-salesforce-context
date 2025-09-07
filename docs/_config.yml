@@ -2,10 +2,10 @@
 # This file configures the GitHub Pages site
 
   # Site settings
-  title: IBM Salesforce MCP Server
+  title: IBM Salesforce Context
 description: An MCP server by IBM that provides Salesforce org context to your IDE AI agent
 url: "https://trevsmart.github.io"
-baseurl: "/ibm-salesforce-mcp"
+baseurl: "/ibm-salesforce-context"
 
 # Build settings
 markdown: kramdown

@@ -73,7 +73,7 @@ describe('MCP HTTP Connection Test', () => {
 		expect(data.result).toBeDefined();
 		expect(data.result.protocolVersion).toBe('2025-06-18');
 		expect(data.result.serverInfo).toBeDefined();
-		expect(data.result.serverInfo.name).toBe('IBM Salesforce MCP Server');
+		expect(data.result.serverInfo.name).toBe('IBM Salesforce Context');
 
 		// Extract session ID for subsequent requests
 		sessionId = data.result.sessionId;
@@ -112,7 +112,7 @@ describe('MCP HTTP Connection Test', () => {
 
 		// Check for expected tools
 		const toolNames = data.result.tools.map((tool: { name: string }) => tool.name);
-		expect(toolNames).toContain('salesforceMcpUtils');
+		expect(toolNames).toContain('salesforceContextUtils');
 		expect(toolNames).toContain('executeSoqlQuery');
 		expect(toolNames).toContain('describeObject');
 		expect(toolNames).toContain('getRecord');

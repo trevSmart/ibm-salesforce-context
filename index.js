@@ -53,7 +53,7 @@ export async function main(rawArgs) {
 
 		// Handle special arguments
 		if (config.transport === '--help') {
-			console.log('IBM Salesforce MCP Server');
+			console.log('IBM Salesforce Context');
 			console.log('');
 			console.log('Usage:');
 			console.log(`  ${pkg.name} [OPTIONS]`);
@@ -81,7 +81,7 @@ export async function main(rawArgs) {
 		}
 
 		if (config.transport === '--version') {
-			console.log(`IBM Salesforce MCP Server v${pkg.version}`);
+			console.log(`IBM Salesforce Context v${pkg.version}`);
 			process.exit(0);
 		}
 
@@ -121,7 +121,7 @@ export async function main(rawArgs) {
 		await setupServer(transport);
 	} catch (error) {
 		const logger = createLogger();
-		logger.error(error, 'Error starting IBM MCP Salesforce server');
+		logger.error(error, 'Error starting IBM Salesforce Context server');
 		await mcpServer.close();
 		process.exit(1);
 	}

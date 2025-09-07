@@ -24,7 +24,7 @@ for (const line of envRaw.split('\n')) {
 
 //Generate deeplink configs
 const cfgCursorBase64 = Buffer.from(JSON.stringify({command: 'npx', args: ['test_research4'], env: {}})).toString('base64');
-const deeplinkCursor = `cursor://anysphere.cursor-deeplink/mcp/install?name=ibm-salesforce-mcp&config=${cfgCursorBase64}`;
+const deeplinkCursor = `cursor://anysphere.cursor-deeplink/mcp/install?name=ibm-salesforce-context&config=${cfgCursorBase64}`;
 const deeplinkVsCode = `vscode:mcp/install?${encodeURIComponent(JSON.stringify({name: 'ibm-salesforce-mcp', command: 'npx', args: ['test_research4']}))}`;
 
 //Read README.md
@@ -32,7 +32,7 @@ const readmePath = path.resolve(__dirname, '../README.md');
 let readme = fs.readFileSync(readmePath, 'utf8');
 
 //Regex for each button line
-const regexCursor = /cursor:\/\/anysphere\.cursor-deeplink\/mcp\/install\?name=ibm-salesforce-mcp&config=[^\n`)]*/g;
+const regexCursor = /cursor:\/\/anysphere\.cursor-deeplink\/mcp\/install\?name=ibm-salesforce-context&config=[^\n`)]*/g;
 const regexVsCode = /vscode:mcp\/install\?[^\n`)]*/g;
 
 //Update or append Cursor deeplink

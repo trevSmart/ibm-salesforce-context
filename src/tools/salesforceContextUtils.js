@@ -10,7 +10,7 @@ const logger = createModuleLogger(import.meta.url);
 
 export const salesforceContextUtilsToolDefinition = {
 	name: 'salesforceContextUtils',
-	title: 'IBM Salesforce Context server utilities',
+	title: 'IBM Salesforce Context Utils',
 	description: await textFileContent('tools/salesforceContextUtils.md'),
 	inputSchema: {
 		action: z.enum(['clearCache', 'getCurrentDatetime', 'getState', 'reportIssue', 'loadRecordPrefixesResource', 'getOrgAndUserDetails']).describe('The action to perform: "clearCache", "getCurrentDatetime", "getState", "reportIssue", "loadRecordPrefixesResource", "getOrgAndUserDetails"'),
@@ -21,7 +21,7 @@ export const salesforceContextUtilsToolDefinition = {
 		readOnlyHint: false,
 		idempotentHint: false,
 		openWorldHint: false,
-		title: 'IBM Salesforce Context server utilities'
+		title: 'IBM Salesforce Context Utils'
 	}
 };
 
@@ -399,9 +399,8 @@ IMPORTANT: Generate your response in English.`;
 		} else {
 			throw new Error(`Invalid action: ${action}`);
 		}
-
 	} catch (error) {
-		logger.error(error, 'Error in salesforceContextUtils tool');
+		logger.error(error, 'Error in salesforceContextUtilsTool');
 		return {
 			isError: true,
 			content: [

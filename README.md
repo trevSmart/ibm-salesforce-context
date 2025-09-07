@@ -1,4 +1,4 @@
-## <img src="docs/assets/images/ibm-logo.webp" alt="IBM logo" width="52" style="position: relative; margin-right: 4px; top: 4px;"/> IBM Salesforce MCP Server
+## <img src="docs/assets/images/ibm-logo.webp" alt="IBM logo" width="52" style="position: relative; margin-right: 4px; top: 4px;"/> IBM Salesforce Context
 
 An MCP server by IBM that provides Salesforce org context to your IDE AI agent
 
@@ -44,7 +44,7 @@ This project includes a comprehensive automated code review system powered by Gi
 
 ### Getting started
 
-First, install the IBM Salesforce MCP server with your client. A typical configuration looks like this:
+First, add IBM Salesforce Context to your client. A typical configuration looks like this:
 
 ```js
 {
@@ -61,7 +61,7 @@ First, install the IBM Salesforce MCP server with your client. A typical configu
 
 ### Command Line Interface
 
-The IBM Salesforce MCP Server supports comprehensive CLI arguments for configuration:
+IBM Salesforce Context supports comprehensive CLI arguments for configuration:
 
 #### Basic Usage
 
@@ -176,44 +176,6 @@ Returns comprehensive server information including:
 - Available MCP tools and resources
 - Environment information
 
-Example response:
-```json
-{
-  "server": {
-    "name": "IBM Salesforce MCP Server",
-    "version": "1.0.0",
-    "status": "running",
-    "uptime": 3600,
-    "transport": "HTTP",
-    "port": 3000
-  },
-  "salesforce": {
-    "cliVersion": "2.15.0",
-    "orgConnected": true,
-    "orgInfo": {
-      "username": "user@example.com",
-      "orgId": "00D000000000000EAA",
-      "instanceUrl": "https://test.salesforce.com"
-    }
-  },
-  "mcp": {
-    "tools": {
-      "count": 15,
-      "available": [
-        {"name": "executeSoqlQuery", "description": "Execute SOQL queries"},
-        {"name": "describeObject", "description": "Get SObject metadata"}
-      ]
-    },
-    "resources": {
-      "count": 3,
-      "available": [
-        {"uri": "salesforce://org", "name": "Current Org", "description": "Current Salesforce org information"}
-      ]
-    }
-  }
-}
-```
-
 #### Priority Order
 
 Configuration values are applied in the following priority order:
@@ -241,7 +203,7 @@ test_research4 --transport http --port 3001 --log-level debug --workspace /path/
 [<img src="https://img.shields.io/badge/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF" alt="Install in VS Code">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522salesforce%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522test_research4%2540latest%2522%255D%257D) [<img alt="Install in VS Code Insiders" src="https://img.shields.io/badge/VS_Code_Insiders-VS_Code_Insiders?style=flat-square&label=Install%20Server&color=24bfa5">](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522salesforce%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522test_research4%2540latest%2522%255D%257D)
 
 <details><summary><b>Install in VS Code</b></summary>
-After installation, the IBM Salesforce MCP server will be available for use with your GitHub Copilot agent in VS Code.
+After installation, IBM Salesforce Context will be available for use with your GitHub Copilot agent in VS Code.
 </details>
 
 <details>
@@ -377,7 +339,7 @@ You can customize with CLI arguments:
 <details>
 <summary><b>Install in Claude Code</b></summary>
 
-Use the Claude Code CLI to add the IBM Salesforce MCP server:
+Use the Claude Code CLI to add IBM Salesforce Context:
 
 ```bash
 # Basic installation

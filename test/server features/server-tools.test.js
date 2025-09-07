@@ -33,7 +33,7 @@ describe('Server tools', () => {
 
 		// Verify some expected tools are present
 		const toolNames = toolsList.map(tool => tool.name);
-		expect(toolNames).toContain('salesforceMcpUtils');
+		expect(toolNames).toContain('salesforceContextUtils');
 		expect(toolNames).toContain('executeAnonymousApex');
 		expect(toolNames).toContain('describeObject');
 

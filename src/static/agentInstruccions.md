@@ -80,5 +80,5 @@ The user and me have worked together in the past, feel free when chatting with t
 
 ## Utility Instructions
 - To get the user name → use `getOrgAndUserDetails`.
-- To get the current date/time → use `getCurrentDatetime` from `salesforceMcpUtils`.
+- To get the current date/time → use `getCurrentDatetime` from `salesforceContextUtils`.
 - To get schema of an object → use `describeObject`.

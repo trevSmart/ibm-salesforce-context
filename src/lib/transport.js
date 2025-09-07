@@ -167,7 +167,7 @@ export async function connectTransport(mcpServer, transportType) {
 
 					const statusInfo = {
 						server: {
-							name: 'IBM Salesforce MCP Server',
+							name: 'IBM Salesforce Context server',
 							version: process.env.npm_package_version || 'unknown',
 							status: 'running',
 							uptime: process.uptime(),
@@ -221,7 +221,7 @@ export async function connectTransport(mcpServer, transportType) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IBM Salesforce MCP Server Status</title>
+    <title>IBM Salesforce Context server Status</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -358,7 +358,7 @@ export async function connectTransport(mcpServer, transportType) {
 <body>
     <div class="container">
         <div class="header">
-            <h1>IBM Salesforce MCP Server</h1>
+            <h1>IBM Salesforce Context server</h1>
             <p>Model Context Protocol Server Status Dashboard</p>
         </div>
 
@@ -481,7 +481,7 @@ export async function connectTransport(mcpServer, transportType) {
                 <a href="/status" class="endpoint-link">JSON Status</a>
                 <a href="/healthz" class="endpoint-link">Health Check</a>
             </div>
-            <p>IBM Salesforce MCP Server - Model Context Protocol Implementation</p>
+            <p>IBM Salesforce Context - a Model Context Protocol implementation</p>
         </div>
     </div>
 </body>
@@ -493,7 +493,7 @@ export async function connectTransport(mcpServer, transportType) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>IBM Salesforce MCP Server - Error</title>
+    <title>IBM Salesforce Context server - Error</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
         .error { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -586,7 +586,7 @@ export async function connectTransport(mcpServer, transportType) {
 
 					const statusInfo = {
 						server: {
-							name: 'IBM Salesforce MCP Server',
+							name: 'IBM Salesforce Context server',
 							version: process.env.npm_package_version || 'unknown',
 							status: 'running',
 							uptime: process.uptime(),

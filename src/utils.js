@@ -32,14 +32,13 @@ export async function validateUserPermissions(username) {
 		}
 		// Escape backslashes first, then single quotes for SOQL string literals
 		const safeUsername = username.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-		const soql = `SELECT Id FROM PermissionSetAssignment WHERE Assignee.Username = '${safeUsername}' AND PermissionSet.Name = 'IBM_SalesforceMcpUser'`;
+		const soql = `SELECT Id FROM PermissionSetAssignment WHERE Assignee.Username = '${safeUsername}' AND PermissionSet.Name = 'IBM_SalesforceContextUser'`;
 		const query = await withTimeout(executeSoqlQuery(soql), 10000, 'Permission query timeout');
 		if (query?.records?.length) {
 			state.userValidated = true;
 		} else {
 			state.userValidated = false;
-			// Keep emergency level for visibility via base sink
-			logger.emergency(`Insufficient permissions in org "${state.org.alias}". Assign Permission Set 'IBM_SalesforceMcpUser' to the user.`);
+			logger.error(`Insufficient permissions in org "${state.org.alias}" for user "${username}"`);
 		}
 	} catch (error) {
 		state.userValidated = false;
