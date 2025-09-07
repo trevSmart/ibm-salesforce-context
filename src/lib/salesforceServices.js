@@ -505,7 +505,7 @@ export async function runApexTest(classNames = [], methodNames = [], suiteNames 
 		if (synchronous) {
 			command += ' --synchronous';
 		}
-		command += ' --test-level RunSpecifiedTests --json';
+		command += ` --test-level RunSpecifiedTests --target-org ${state.org.alias} --json`;
 
 		const responseString = await runCliCommand(command);
 		let responseObj;
@@ -742,7 +742,7 @@ export async function executeAnonymousApex(apexCode) {
 
 		// Write the Apex code to a temporary file
 		await fs.writeFile(tmpFile, apexCode, 'utf8');
-		const command = `sf apex run --file "${tmpFile}" --json`;
+		const command = `sf apex run --file "${tmpFile}" --target-org ${state.org.alias} --json`;
 		logger.debug(`Executing anonymous Apex: ${command}`);
 		let cliError = null;
 		let output = null;
@@ -797,7 +797,7 @@ export async function executeAnonymousApex(apexCode) {
 
 export async function deployMetadata(sourceDir) {
 	try {
-		const command = `sf project deploy start --source-dir "${sourceDir}" --ignore-conflicts --json`;
+		const command = `sf project deploy start --source-dir "${sourceDir}" --ignore-conflicts --target-org ${state.org.alias} --json`;
 
 		const responseString = await runCliCommand(command);
 		logger.debug(`responseString: ${responseString}`);
@@ -836,7 +836,7 @@ export async function generateMetadata({type, name, outputDir, triggerSObject, t
 		let command;
 
 		if (type === 'apexClass' || type === 'apexTestClass') {
-			command = `sf apex generate class --name "${name}"`;
+			command = `sf apex generate class --name "${name} --target-org ${state.org.alias}"`;
 			if (resolvedOutputDir) {
 				command += ` --output-dir "${resolvedOutputDir}"`;
 			}
@@ -845,7 +845,7 @@ export async function generateMetadata({type, name, outputDir, triggerSObject, t
 			if (!triggerSObject || typeof triggerSObject !== 'string') {
 				throw new Error('triggerSObject is required and must be a string when type is apexTrigger');
 			}
-			command = `sf apex generate trigger --name "${name}" --sobject "${triggerSObject}"`;
+			command = `sf apex generate trigger --name "${name}" --sobject "${triggerSObject} --target-org ${state.org.alias}"`;
 			if (Array.isArray(triggerEvent) && triggerEvent.length) {
 				command += ` --event "${triggerEvent.join(',')}"`;
 			}
@@ -853,7 +853,7 @@ export async function generateMetadata({type, name, outputDir, triggerSObject, t
 				command += ` --output-dir "${resolvedOutputDir}"`;
 			}
 		} else if (type === 'lwc') {
-			command = `sf lightning generate component --type lwc --name "${name}"`;
+			command = `sf lightning generate component --type lwc --name "${name} --target-org ${state.org.alias}"`;
 			if (resolvedOutputDir) {
 				command += ` --output-dir "${resolvedOutputDir}"`;
 			}
@@ -957,7 +957,7 @@ public class ${name} {
 async function refreshAccessToken() {
 	try {
 		logger.debug('Access token expired, refreshing...');
-		const userDetails = await runCliCommand('sf org display user --json');
+		const userDetails = await runCliCommand(`sf org display user --target-org ${state.org.alias} --json`);
 		const newAccessToken = userDetails.result.accessToken;
 		state.org.accessToken = newAccessToken;
 		return true;

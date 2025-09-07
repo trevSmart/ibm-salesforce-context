@@ -131,14 +131,8 @@ export async function connectTransport(mcpServer, transportType) {
 						// SF CLI not available or error
 					}
 
-					// Get current org info
-					let orgInfo = null;
-					try {
-						const {stdout} = await execAsync('sf org display --json');
-						orgInfo = JSON.parse(stdout);
-					} catch {
-						// No org connected or error
-					}
+					// Get current org info from server state
+					const orgInfo = mcpServer.state?.org;
 
 					// Get server capabilities
 					const capabilities = mcpServer.getCapabilities ? mcpServer.getCapabilities() : {};
@@ -181,12 +175,15 @@ export async function connectTransport(mcpServer, transportType) {
 						},
 						salesforce: {
 							cliVersion: sfVersion,
-							orgConnected: Boolean(orgInfo),
-							orgInfo: orgInfo ? {
-								username: orgInfo.result?.username,
-								orgId: orgInfo.result?.id,
-								instanceUrl: orgInfo.result?.instanceUrl,
-								status: orgInfo.result?.status
+							orgConnected: Boolean(orgInfo?.username),
+							orgInfo: orgInfo?.username ? {
+								username: orgInfo.username,
+								orgId: orgInfo.id,
+								instanceUrl: orgInfo.instanceUrl,
+								alias: orgInfo.alias,
+								apiVersion: orgInfo.apiVersion,
+								userName: orgInfo.user?.name,
+								profileName: orgInfo.user?.profileName
 							} : null
 						},
 						mcp: {
@@ -413,12 +410,28 @@ export async function connectTransport(mcpServer, transportType) {
                     <span class="status-value">${statusInfo.salesforce.orgInfo.username}</span>
                 </div>
                 <div class="status-item">
+                    <span class="status-label">User Name</span>
+                    <span class="status-value">${statusInfo.salesforce.orgInfo.userName || 'N/A'}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Profile</span>
+                    <span class="status-value">${statusInfo.salesforce.orgInfo.profileName || 'N/A'}</span>
+                </div>
+                <div class="status-item">
                     <span class="status-label">Org ID</span>
                     <span class="status-value">${statusInfo.salesforce.orgInfo.orgId}</span>
                 </div>
                 <div class="status-item">
+                    <span class="status-label">Alias</span>
+                    <span class="status-value">${statusInfo.salesforce.orgInfo.alias || 'N/A'}</span>
+                </div>
+                <div class="status-item">
                     <span class="status-label">Instance URL</span>
                     <span class="status-value">${statusInfo.salesforce.orgInfo.instanceUrl}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">API Version</span>
+                    <span class="status-value">${statusInfo.salesforce.orgInfo.apiVersion || 'N/A'}</span>
                 </div>
                 ` : ''}
             </div>
@@ -550,14 +563,8 @@ export async function connectTransport(mcpServer, transportType) {
 						// SF CLI not available or error
 					}
 
-					// Get current org info
-					let orgInfo = null;
-					try {
-						const {stdout} = await execAsync('sf org display --json');
-						orgInfo = JSON.parse(stdout);
-					} catch {
-						// No org connected or error
-					}
+					// Get current org info from server state
+					const orgInfo = mcpServer.state?.org;
 
 					// Get server capabilities
 					const capabilities = mcpServer.getCapabilities ? mcpServer.getCapabilities() : {};
@@ -600,12 +607,15 @@ export async function connectTransport(mcpServer, transportType) {
 						},
 						salesforce: {
 							cliVersion: sfVersion,
-							orgConnected: Boolean(orgInfo),
-							orgInfo: orgInfo ? {
-								username: orgInfo.result?.username,
-								orgId: orgInfo.result?.id,
-								instanceUrl: orgInfo.result?.instanceUrl,
-								status: orgInfo.result?.status
+							orgConnected: Boolean(orgInfo?.username),
+							orgInfo: orgInfo?.username ? {
+								username: orgInfo.username,
+								orgId: orgInfo.id,
+								instanceUrl: orgInfo.instanceUrl,
+								alias: orgInfo.alias,
+								apiVersion: orgInfo.apiVersion,
+								userName: orgInfo.user?.name,
+								profileName: orgInfo.user?.profileName
 							} : null
 						},
 						mcp: {
