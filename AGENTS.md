@@ -127,8 +127,10 @@ IBM Salesforce MCP Server is a Model Context Protocol (MCP) server built in Node
 
 #### Interacting with the MCP server in HTTP mode
 
-- Boot the MCP server in HTTP mode running:
+- Boot the MCP server in HTTP mode working in the Salesforce project directory:
   ```
+  echo WORKSPACE_FOLDER_PATHS=<PATH_TO_SALESFORCE_PROJECT> >> .env
+
   npm run start
   ```
 
