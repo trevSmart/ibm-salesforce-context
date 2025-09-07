@@ -175,7 +175,7 @@ function registerHandlers() {
 		try {
 			if (client.supportsCapability('roots')) {
 				try {
-					listRootsResult = await mcpServer.server.listRoots();
+					listRootsResult = await withTimeout(mcpServer.server.listRoots(), 2000, 'Roots list request timeout');
 				} catch (error) {
 					logger.debug(`Requested roots list but client returned error: ${JSON.stringify(error, null, 3)}`);
 				}
@@ -276,7 +276,7 @@ function registerHandlers() {
 				setWorkspacePath(process.env.WORKSPACE_FOLDER_PATHS);
 			} else if (client.supportsCapability('roots')) {
 				try {
-					await mcpServer.server.listRoots();
+					await withTimeout(mcpServer.server.listRoots(), 2000, 'Roots list request timeout');
 				} catch (error) {
 					logger.debug(`Requested roots list but client returned error: ${JSON.stringify(error, null, 3)}`);
 				}
