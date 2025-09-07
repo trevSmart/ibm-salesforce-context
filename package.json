@@ -17,7 +17,8 @@
     "test:cov": "c8 -o coverage --reporter=text --reporter=html vitest run",
     "test:watch": "vitest --watch",
     "start": "node index.js --transport http",
-    "publish-package": "sh dev/publish-package.sh"
+    "publish-package": "sh dev/publish-package.sh",
+    "publish-package-skip-tests": "sh dev/publish-package.sh --skip-tests"
   },
   "keywords": [
     "test",
