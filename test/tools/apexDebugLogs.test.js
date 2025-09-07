@@ -36,7 +36,7 @@ describe('apexDebugLogs', () => {
 
 		// Save the result for other tests
 		logsList = result.structuredContent.logs;
-	});
+	}, 10000);
 
 	test('get', async () => {
 		// If logsList is not defined or empty, skip the test

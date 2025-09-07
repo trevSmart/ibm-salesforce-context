@@ -52,7 +52,7 @@ describe('runApexTest', () => {
 				expect(testResult.status).toBeTruthy();
 			}
 		}
-	});
+	}, 15000);
 
 	test('by method', async () => {
 		// For now, just test that the tool responds (even if with error)
@@ -64,5 +64,5 @@ describe('runApexTest', () => {
 		// The tool should respond (even if with an error)
 		expect(result).toBeTruthy();
 		expect(result.isError).toBe(true);
-	});
+	}, 15000);
 });

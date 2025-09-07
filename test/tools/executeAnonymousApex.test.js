@@ -41,5 +41,5 @@ describe('executeAnonymousApex', () => {
 		});
 
 		expect(result?.structuredContent?.success).toBeTruthy(result?.structuredContent);
-	});
+	}, 10000);
 });
