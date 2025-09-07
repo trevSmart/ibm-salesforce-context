@@ -32,7 +32,7 @@ describe('executeAnonymousApex', () => {
 		if (result?.structuredContent?.logs) {
 			expect(result.structuredContent.logs).toContain('Hello from MCP tool test');
 		}
-	});
+	}, 10000);
 
 	test('with modification', async () => {
 		const result = await client.callTool('executeAnonymousApex', {

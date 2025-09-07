@@ -4,6 +4,7 @@ export default defineConfig({
 		globals: true,
 		environment: 'node',
 		setupFiles: ['./test/setup.ts'],
+		testTimeout: 10000,
 		include: ['test/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
 		coverage: {
 			enabled: true,

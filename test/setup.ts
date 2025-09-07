@@ -1,8 +1,18 @@
 import {beforeAll, afterAll, expect} from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import {setupServer, readyPromise, mcpServer} from '../src/mcp-server.js';
-import {stopHttpServer} from '../src/lib/transport.js';
+
+// Determine which server to use based on current working directory and environment
+const isRunningFromDist = process.cwd().endsWith('/dist') || process.cwd().endsWith('\\dist');
+const serverPath = isRunningFromDist ? './src/mcp-server.js' : '../src/mcp-server.js';
+const transportPath = isRunningFromDist ? './src/lib/transport.js' : '../src/lib/transport.js';
+
+// Dynamic imports based on whether we're running from dist or src
+const serverModule = await import(serverPath);
+const transportModule = await import(transportPath);
+
+const {setupServer, readyPromise, mcpServer} = serverModule;
+const {stopHttpServer} = transportModule;
 
 const port = 3000 + Number(process.env.VITEST_WORKER_ID || 0);
 process.env.MCP_HTTP_PORT = String(port);

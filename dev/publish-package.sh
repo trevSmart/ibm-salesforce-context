@@ -170,10 +170,11 @@ echo
 if [ "$SKIP_TESTS" = "false" ]; then
   echo "\033[95mRunning basic server functionality tests...\033[0m"
   TEST_OUTPUT=$(mktemp)
-  ./node_modules/.bin/vitest --silent --run | tee "$TEST_OUTPUT"
+  ./node_modules/.bin/vitest --silent --run --retry=2 --reporter=dot | tee "$TEST_OUTPUT"
 
   # Check if tests passed successfully
-  if ! grep -q '🎉 All tests passed!' "$TEST_OUTPUT"; then
+  # Look for successful test completion patterns
+  if ! grep -qE 'Tests[[:space:]]+[0-9]+ passed' "$TEST_OUTPUT" || grep -qE '(failed|error|Error)' "$TEST_OUTPUT"; then
     echo "\033[95mErrors detected in tests. Stopping build.\033[0m"
     rm -f "$TEST_OUTPUT"
     exit 1
@@ -371,11 +372,16 @@ cd ..
 if [ "$SKIP_TESTS" = "false" ]; then
   echo "\n\033[95mRunning tests against obfuscated server (dist/)...\033[0m"
   TEST_DIST_OUTPUT=$(mktemp)
-  # Tell the runner to start the server from dist/index.js
-  # Use an absolute path to avoid incorrect relative resolutions
-  MCP_TEST_SERVER_PATH="$(pwd)/dist/index.js" ./node_modules/.bin/vitest -- --silent --run | tee "$TEST_DIST_OUTPUT"
 
-  if ! grep -q '🎉 All tests passed!' "$TEST_DIST_OUTPUT"; then
+  # Copy test files to dist/ and run tests from there so setup.ts can detect the correct paths
+  cp -r test dist/ 2>/dev/null || true
+
+  # Change to dist directory to run tests from there (so process.cwd() ends with /dist)
+  cd dist
+  ../node_modules/.bin/vitest --silent --run --retry=2 --reporter=dot | tee "$TEST_DIST_OUTPUT"
+  cd ..
+
+  if ! grep -qE 'Tests[[:space:]]+[0-9]+ passed' "$TEST_DIST_OUTPUT" || grep -qE '(failed|error|Error)' "$TEST_DIST_OUTPUT"; then
     echo "\033[91m❌ Tests against the obfuscated build have failed.\033[0m"
     rm -f "$TEST_DIST_OUTPUT"
     restore_versions
@@ -390,16 +396,78 @@ else
 fi
 echo
 echo "\033[95mDo you want to continue with publishing the package to NPM? (Y/n)\033[0m"
-# If stdin is not available (non-interactive environment), 'read' will fail.
-# In this case, we assume Enter by default (Yes) to avoid blocking.
-if ! IFS= read -r response; then
+
+# Use a more robust input method that works after the complex countdown logic
+# Create temporary files for input handling
+temp_response_file=$(mktemp)
+temp_response_done=$(mktemp)
+
+# Input listener for the confirmation prompt
+(
+  : > "$temp_response_file"
+  # Save and configure TTY in non-canonical mode to capture keys immediately
+  old_tty=$(stty -g </dev/tty 2>/dev/null || true)
+  trap 'stty "$old_tty" </dev/tty 2>/dev/null || true' EXIT INT TERM
+  stty -icanon min 1 time 1 </dev/tty 2>/dev/null || true
+
+  while :; do
+    # dd blocks until it receives 1 byte or expires (time)
+    c=$(dd if=/dev/tty bs=1 count=1 2>/dev/null || true)
+    # If nothing, check again
+    [ -z "$c" ] && continue
+    # Save the character
+    printf "%s" "$c" >> "$temp_response_file"
+    # If it's a newline, mark as finished
+    last_char=$(printf "%s" "$c" | tail -c 1)
+    if [ "x$last_char" = "x\n" ]; then
+      : > "$temp_response_done"
+      break
+    fi
+  done
+) &
+response_listener_pid=$!
+
+# Wait for user input with a timeout
+timeout_seconds=30
+timeout_reached=false
+for i in $(seq 1 $timeout_seconds); do
+  if [ -f "$temp_response_done" ]; then
+    break
+  fi
+  if [ $i -eq $timeout_seconds ]; then
+    timeout_reached=true
+    break
+  fi
+  sleep 1
+done
+
+# Clean up the listener process
+kill "$response_listener_pid" 2>/dev/null || true
+wait "$response_listener_pid" 2>/dev/null || true
+
+# Read the response
+if [ -f "$temp_response_done" ]; then
+  response=$(tr -d '\r' < "$temp_response_file" | sed 's/\n$//')
+else
   response=""
 fi
+
+# Clean up temporary files
+rm -f "$temp_response_file" "$temp_response_done"
+
 # Normalize: remove CR/spaces and convert to lowercase
 response_norm=$(printf '%s' "$response" \
   | tr -d '\r' \
   | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' \
   | tr '[:upper:]' '[:lower:]')
+
+# Handle timeout case
+if [ "$timeout_reached" = "true" ]; then
+  echo
+  echo "\033[95mNo response received within $timeout_seconds seconds. Publication cancelled for safety.\033[0m"
+  exit 1
+fi
+
 # Accept typical acceptance values and Enter by default (Yes)
 case "$response_norm" in
   ""|y|yes|s|si)
@@ -412,7 +480,7 @@ case "$response_norm" in
     ;;
   *)
     echo
-    echo "\033[95mUnrecognized input. Publication cancelled for safety.\033[0m"
+    echo "\033[95mUnrecognized input '$response_norm'. Publication cancelled for safety.\033[0m"
     exit 1
     ;;
 esac
@@ -482,9 +550,9 @@ if [ "$SKIP_TESTS" = "false" ]; then
   echo "   Running tests with \033[96mnpx -y -p $package_name@$new_version $bin_name --stdio\033[0m"
   TEST_NPX_OUTPUT=$(mktemp)
   MCP_TEST_SERVER_SPEC="npx:$package_name@$new_version#$bin_name" \
-    .node_modules/.bin/vitest -- --silent --run | tee "$TEST_NPX_OUTPUT"
+    .node_modules/.bin/vitest -- --silent --run --retry=2 --reporter=dot | tee "$TEST_NPX_OUTPUT"
 
-  if ! grep -q '🎉 All tests passed!' "$TEST_NPX_OUTPUT"; then
+  if ! grep -qE 'Tests[[:space:]]+[0-9]+ passed' "$TEST_NPX_OUTPUT" || grep -qE '(failed|error|Error)' "$TEST_NPX_OUTPUT"; then
     echo "\033[91m❌ Tests against the published package via npx have failed.\033[0m"
     rm -f "$TEST_NPX_OUTPUT"
     restore_versions

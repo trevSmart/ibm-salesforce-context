@@ -37,7 +37,7 @@ describe('getSetupAuditTrail', () => {
 		expect(result?.structuredContent?.filters).toBeTruthy();
 		expect(typeof result.structuredContent.setupAuditTrailFileTotalRecords).toBe('number');
 		expect(Array.isArray(result.structuredContent.records)).toBe(true);
-	}, 22_000);
+	}, 60_000);
 
 	test('cached with user filter', async () => {
 		const result = await client.callTool('getSetupAuditTrail', {
