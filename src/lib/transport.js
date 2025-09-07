@@ -112,7 +112,7 @@ export async function connectTransport(mcpServer, transportType) {
 			app.get('/mcp', handleSessionRequest);
 			app.delete('/mcp', handleSessionRequest);
 
-			const requestedPort = Number.parseInt(process.env.MCP_HTTP_PORT) || 3000;
+			const requestedPort = Number.parseInt(process.env.MCP_HTTP_PORT, 10) || 3000;
 			try {
 				const port = await findAvailablePort(requestedPort);
 				if (port !== requestedPort) {

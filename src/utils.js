@@ -17,10 +17,7 @@ const logger = createModuleLogger(import.meta.url);
  * @returns {Promise} Promise that rejects with timeout error if timeout is reached
  */
 export function withTimeout(promise, ms, errorMessage = 'Operation timeout') {
-	return Promise.race([
-		promise,
-		new Promise((_, reject) => setTimeout(() => reject(new Error(errorMessage)), ms))
-	]);
+	return Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error(errorMessage)), ms))]);
 }
 
 /**
