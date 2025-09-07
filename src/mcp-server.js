@@ -150,7 +150,6 @@ export function newResource(uri, name, description, mimeType = 'text/plain', con
 			// Remove oldest resource (first key)
 			const oldestResourceUri = Object.keys(resources)[0];
 			delete resources[oldestResourceUri];
-			mcpServer.server.sendResourceListChanged();
 			logger.debug(`Removed oldest resource ${oldestResourceUri} to maintain limit of ${config.resources.maxResources} resources`);
 		}
 
