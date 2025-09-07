@@ -59,7 +59,6 @@
 			"!.npm-cache/",
 			"!.npm-tmp/",
 			"!dev/",
-			"!ibm-test-client/",
 			"!*.code-workspace",
 			"!.cursorignore",
 			"!.cursorrules",
