@@ -170,7 +170,7 @@ echo
 if [ "$SKIP_TESTS" = "false" ]; then
   echo "\033[95mExecutant tests bàsics de funcionament del servidor...\033[0m"
   TEST_OUTPUT=$(mktemp)
-  npm run test -- --quiet | tee "$TEST_OUTPUT"
+  npm run test -- --silent | tee "$TEST_OUTPUT"
 
   # Comprova si els tests han passat correctament
   if ! grep -q '🎉 All tests passed!' "$TEST_OUTPUT"; then
@@ -373,7 +373,7 @@ if [ "$SKIP_TESTS" = "false" ]; then
   TEST_DIST_OUTPUT=$(mktemp)
   # Indica al runner que arrenqui el servidor des de dist/index.js
   # Usa un camí absolut per evitar resolucions relatives incorrectes
-  MCP_TEST_SERVER_PATH="$(pwd)/dist/index.js" npm run test -- --quiet | tee "$TEST_DIST_OUTPUT"
+  MCP_TEST_SERVER_PATH="$(pwd)/dist/index.js" npm run test -- --silent | tee "$TEST_DIST_OUTPUT"
 
   if ! grep -q '🎉 All tests passed!' "$TEST_DIST_OUTPUT"; then
     echo "\033[91m❌ Els tests contra la build ofuscada han fallat.\033[0m"
@@ -482,7 +482,7 @@ if [ "$SKIP_TESTS" = "false" ]; then
   echo "   Executant tests amb \033[96mnpx -y -p $package_name@$new_version $bin_name --stdio\033[0m"
   TEST_NPX_OUTPUT=$(mktemp)
   MCP_TEST_SERVER_SPEC="npx:$package_name@$new_version#$bin_name" \
-    npm run test -- --quiet | tee "$TEST_NPX_OUTPUT"
+    npm run test -- --silent | tee "$TEST_NPX_OUTPUT"
 
   if ! grep -q '🎉 All tests passed!' "$TEST_NPX_OUTPUT"; then
     echo "\033[91m❌ Els tests contra el paquet publicat via npx han fallat.\033[0m"
