@@ -26,6 +26,7 @@ Thumbs.db
 .sfdx/
 .sf/
 sfdx-project.json
+force-app/
 
 # Environment variables and secrets
 .env

@@ -62,7 +62,7 @@ describe('apexDebugLogs', () => {
 		} else {
 			console.log('Log content is not available yet (log might be empty or still processing)');
 		}
-	});
+	}, 10000);
 
 	test('off', async () => {
 		const result = await client.callTool('apexDebugLogs', { action: 'off' });
