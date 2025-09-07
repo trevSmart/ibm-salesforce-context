@@ -33,7 +33,7 @@ class Client {
 			'cursor-vscode': 'Cursor',
 			'Visual Studio Code': 'Visual Studio Code',
 			'Visual Studio Code - Insiders': 'Visual Studio Code - Insiders',
-			'microscope': 'MiCroscoPe'
+			microscope: 'MiCroscoPe'
 		};
 
 		return clientMapping[clientName] || clientName;

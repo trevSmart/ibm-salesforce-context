@@ -399,7 +399,6 @@ IMPORTANT: Generate your response in English.`;
 		} else {
 			throw new Error(`Invalid action: ${action}`);
 		}
-
 	} catch (error) {
 		logger.error(error, 'Error in salesforceContextUtils tool');
 		return {

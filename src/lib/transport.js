@@ -142,17 +142,23 @@ export async function connectTransport(mcpServer, transportType) {
 					let resourcesInfo = [];
 					try {
 						// Get tools list
-						const toolsResponse = await mcpServer.server.request({
-							method: 'tools/list',
-							params: {}
-						}, {});
+						const toolsResponse = await mcpServer.server.request(
+							{
+								method: 'tools/list',
+								params: {}
+							},
+							{}
+						);
 						toolsInfo = toolsResponse.tools || [];
 
 						// Get resources list
-						const resourcesResponse = await mcpServer.server.request({
-							method: 'resources/list',
-							params: {}
-						}, {});
+						const resourcesResponse = await mcpServer.server.request(
+							{
+								method: 'resources/list',
+								params: {}
+							},
+							{}
+						);
 						resourcesInfo = resourcesResponse.resources || [];
 					} catch (error) {
 						// If we can't get tools/resources info, continue without it
@@ -176,28 +182,30 @@ export async function connectTransport(mcpServer, transportType) {
 						salesforce: {
 							cliVersion: sfVersion,
 							orgConnected: Boolean(orgInfo?.username),
-							orgInfo: orgInfo?.username ? {
-								username: orgInfo.username,
-								orgId: orgInfo.id,
-								instanceUrl: orgInfo.instanceUrl,
-								alias: orgInfo.alias,
-								apiVersion: orgInfo.apiVersion,
-								userName: orgInfo.user?.name,
-								profileName: orgInfo.user?.profileName
-							} : null
+							orgInfo: orgInfo?.username
+								? {
+										username: orgInfo.username,
+										orgId: orgInfo.id,
+										instanceUrl: orgInfo.instanceUrl,
+										alias: orgInfo.alias,
+										apiVersion: orgInfo.apiVersion,
+										userName: orgInfo.user?.name,
+										profileName: orgInfo.user?.profileName
+									}
+								: null
 						},
 						mcp: {
 							capabilities: capabilities,
 							tools: {
 								count: toolsInfo.length,
-								available: toolsInfo.map(tool => ({
+								available: toolsInfo.map((tool) => ({
 									name: tool.name,
 									description: tool.description
 								}))
 							},
 							resources: {
 								count: resourcesInfo.length,
-								available: resourcesInfo.map(resource => ({
+								available: resourcesInfo.map((resource) => ({
 									uri: resource.uri,
 									name: resource.name,
 									description: resource.description
@@ -404,7 +412,9 @@ export async function connectTransport(mcpServer, transportType) {
                         </span>
                     </span>
                 </div>
-                ${statusInfo.salesforce.orgInfo ? `
+                ${
+					statusInfo.salesforce.orgInfo
+						? `
                 <div class="status-item">
                     <span class="status-label">Username</span>
                     <span class="status-value">${statusInfo.salesforce.orgInfo.username}</span>
@@ -433,7 +443,9 @@ export async function connectTransport(mcpServer, transportType) {
                     <span class="status-label">API Version</span>
                     <span class="status-value">${statusInfo.salesforce.orgInfo.apiVersion || 'N/A'}</span>
                 </div>
-                ` : ''}
+                `
+						: ''
+				}
             </div>
 
             <div class="status-card">
@@ -443,12 +455,16 @@ export async function connectTransport(mcpServer, transportType) {
                     <span class="status-value">${statusInfo.mcp.tools.count}</span>
                 </div>
                 <div class="tools-list">
-                    ${statusInfo.mcp.tools.available.map(tool => `
+                    ${statusInfo.mcp.tools.available
+						.map(
+							(tool) => `
                         <div class="tool-item">
                             <div class="tool-name">${tool.name}</div>
                             <div class="tool-desc">${tool.description}</div>
                         </div>
-                    `).join('')}
+                    `
+						)
+						.join('')}
                 </div>
             </div>
 
@@ -459,12 +475,16 @@ export async function connectTransport(mcpServer, transportType) {
                     <span class="status-value">${statusInfo.mcp.resources.count}</span>
                 </div>
                 <div class="resources-list">
-                    ${statusInfo.mcp.resources.available.map(resource => `
+                    ${statusInfo.mcp.resources.available
+						.map(
+							(resource) => `
                         <div class="resource-item">
                             <div class="resource-name">${resource.name}</div>
                             <div class="resource-desc">${resource.description}</div>
                         </div>
-                    `).join('')}
+                    `
+						)
+						.join('')}
                 </div>
             </div>
 
@@ -574,17 +594,23 @@ export async function connectTransport(mcpServer, transportType) {
 					let resourcesInfo = [];
 					try {
 						// Get tools list
-						const toolsResponse = await mcpServer.server.request({
-							method: 'tools/list',
-							params: {}
-						}, {});
+						const toolsResponse = await mcpServer.server.request(
+							{
+								method: 'tools/list',
+								params: {}
+							},
+							{}
+						);
 						toolsInfo = toolsResponse.tools || [];
 
 						// Get resources list
-						const resourcesResponse = await mcpServer.server.request({
-							method: 'resources/list',
-							params: {}
-						}, {});
+						const resourcesResponse = await mcpServer.server.request(
+							{
+								method: 'resources/list',
+								params: {}
+							},
+							{}
+						);
 						resourcesInfo = resourcesResponse.resources || [];
 					} catch (error) {
 						// If we can't get tools/resources info, continue without it
@@ -608,28 +634,30 @@ export async function connectTransport(mcpServer, transportType) {
 						salesforce: {
 							cliVersion: sfVersion,
 							orgConnected: Boolean(orgInfo?.username),
-							orgInfo: orgInfo?.username ? {
-								username: orgInfo.username,
-								orgId: orgInfo.id,
-								instanceUrl: orgInfo.instanceUrl,
-								alias: orgInfo.alias,
-								apiVersion: orgInfo.apiVersion,
-								userName: orgInfo.user?.name,
-								profileName: orgInfo.user?.profileName
-							} : null
+							orgInfo: orgInfo?.username
+								? {
+										username: orgInfo.username,
+										orgId: orgInfo.id,
+										instanceUrl: orgInfo.instanceUrl,
+										alias: orgInfo.alias,
+										apiVersion: orgInfo.apiVersion,
+										userName: orgInfo.user?.name,
+										profileName: orgInfo.user?.profileName
+									}
+								: null
 						},
 						mcp: {
 							capabilities: capabilities,
 							tools: {
 								count: toolsInfo.length,
-								available: toolsInfo.map(tool => ({
+								available: toolsInfo.map((tool) => ({
 									name: tool.name,
 									description: tool.description
 								}))
 							},
 							resources: {
 								count: resourcesInfo.length,
-								available: resourcesInfo.map(resource => ({
+								available: resourcesInfo.map((resource) => ({
 									uri: resource.uri,
 									name: resource.name,
 									description: resource.description
@@ -644,7 +672,6 @@ export async function connectTransport(mcpServer, transportType) {
 					};
 
 					res.status(200).json(statusInfo);
-
 				} catch (error) {
 					res.status(500).json({
 						error: 'Failed to get status information',

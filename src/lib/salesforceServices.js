@@ -26,20 +26,30 @@ class ApiCacheManager {
 		// Initialize global cache if not exists
 		if (this.enabled && !globalThis.__SF_API_CACHE__) {
 			globalThis.__SF_API_CACHE__ = new Map();
-			// Add periodic cleanup for global cache
-			setInterval(() => {
-				if (globalThis.__SF_API_CACHE__.size > this.maxEntries * 2) {
-					const entries = Array.from(globalThis.__SF_API_CACHE__.entries());
-					// Keep only the most recent entries
-					globalThis.__SF_API_CACHE__.clear();
-					entries.slice(-this.maxEntries).forEach(([key, value]) => {
-						globalThis.__SF_API_CACHE__.set(key, value);
-					});
-					logger.debug(`Global cache pruned to ${globalThis.__SF_API_CACHE__.size} entries`);
-				}
-			}, 60 * 60 * 1000); // Every 1 hour
+			this.setupCacheCleanup();
 		}
 		this.cache = globalThis.__SF_API_CACHE__;
+	}
+
+	/**
+	 * Setup periodic cache cleanup
+	 */
+	setupCacheCleanup() {
+		const cleanupTimer = setInterval(
+			() => {
+				if (globalThis.__SF_API_CACHE__.size > this.maxEntries * 2) {
+					const entries = Array.from(globalThis.__SF_API_CACHE__.entries());
+					globalThis.__SF_API_CACHE__.clear();
+					for (const [key, value] of entries.slice(-this.maxEntries)) {
+						globalThis.__SF_API_CACHE__.set(key, value);
+					}
+					logger.debug(`Global cache pruned to ${globalThis.__SF_API_CACHE__.size} entries`);
+				}
+			},
+			60 * 60 * 1000
+		); // Every 1 hour
+
+		cleanupTimer.unref?.();
 	}
 
 	/**
@@ -778,17 +788,15 @@ export async function executeAnonymousApex(apexCode) {
 		}
 		logger.debug(response);
 		return response.result;
-
 	} catch (error) {
 		logger.error(error, 'Error executing anonymous Apex');
 		throw error;
-
 	} finally {
 		// Delete temporary files to prevent accumulation
 		if (tmpFile) {
 			try {
 				await fs.unlink(tmpFile);
-			} catch (e) {
+			} catch (_e) {
 				// It's fine if the file cannot be deleted
 			}
 		}
