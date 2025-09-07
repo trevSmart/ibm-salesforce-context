@@ -112,30 +112,77 @@ IBM Salesforce MCP Server is a Model Context Protocol (MCP) server built in Node
 
   Tests are written with Vitest and are located in the `test` directory.
 
-  - To run all tests use:
+- To run all tests use:
 
+  ```
+  npm run test
+  ```
+
+- To run specific tests:
+
+  ```
+  npm run test -- --run describeObject.test.js executeSoqlQuery.test.js
+  ```
+
+#### Interacting with the MCP server in HTTP mode
+
+- Boot the MCP server in HTTP mode running:
+  ```
+  npm run start
+  ```
+
+- Use curl to send valid MCP requests with JSON-RPC messages to the server. For example:
+
+  - Initialization request to get the session ID:
     ```
-    npm run test
+    curl -X POST http://localhost:3000/mcp \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json, text/event-stream" \
+    -d '{
+      "jsonrpc": "2.0",
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "protocolVersion": "2025-06-18",
+        "capabilities": {
+          "roots": {"listChanged": true},
+          "sampling": {}
+        },
+        "clientInfo": {
+          "name": "curl-test-client",
+          "version": "1.0.0"
+        }
+      }
+    }'
     ```
 
-  - To run specific tests:
-
+  - Get tools list request
     ```
-    npm run test -- --run describeObject.test.js executeSoqlQuery.test.js
+    curl -X POST http://localhost:3000/mcp \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json, text/event-stream" \
+    -H "mcp-session-id: <SESSION_ID>" \
+    -d '{
+      "jsonrpc": "2.0",
+      "id": 2,
+      "method": "tools/list"
+    }'
+    ```
+  - Disconnect request
+    ```
+    curl -X DELETE http://localhost:3000/mcp \
+    -H "mcp-session-id: <SESSION_ID>"
     ```
 
+- #### (STILL NOT AVAILABLE!!) Using the MiCroscoPe MCP Client command line interface
 
-- #### Using the IBM Test MCP Client command line interface
-
-  The IBM Test MCP Client is available as a dev dependency (microscope-mcp-client). It can connect to the MCP server through stdio transport and provides an interface command line interface to operate the MCP server.
+  The MiCroscoPe client is available as a dev dependency (microscope-mcp-client). It can connect to the MCP server through stdio transport and provides an interface command line interface to operate the MCP server.
 
   You can run it with:
   ```
   microscope --server local_mcp_server.js #For local servers
 
   ```
-
-
 
 ## Pull requests
 
