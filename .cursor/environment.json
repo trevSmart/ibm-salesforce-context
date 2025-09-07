@@ -1,4 +1,3 @@
 {
-  "agentCanUpdateSnapshot": true,
-  "install": "npm install"
+	"agentCanUpdateSnapshot": true
 }

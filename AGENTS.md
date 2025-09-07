@@ -82,18 +82,18 @@ IBM Salesforce Context is a Model Context Protocol (MCP) server built in Node.js
     ```
     source .env
 
-    export SF_ACCESS_TOKEN=$(curl -s -X POST "https://test.salesforce.com/    services/oauth2/token" \
+    response=$(curl -s -X POST "https://test.salesforce.com/services/oauth2/token" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -d "grant_type=password" \
       -d "client_id=$SF_ORG_CLIENT_ID" \
       -d "client_secret=$SF_ORG_CLIENT_SECRET" \
       -d "username=$SF_ORG_CLIENT_USERNAME" \
-      -d "password=$SF_ORG_CLIENT_PASSWORD" | \
-      grep -o '"access_token":"[^"]*' | \
-      cut -d':' -f2 | \
-      tr -d '"')
+      -d "password=$SF_ORG_CLIENT_PASSWORD")
 
-    sf org login access-token --instance-url $SF_ORG_URL --no-prompt --set-default
+    export SF_ACCESS_TOKEN=$(echo "$response" | jq -r '.access_token')
+    export SF_INSTANCE_URL=$(echo "$response" | jq -r '.instance_url')
+
+    sf org login access-token --instance-url $SF_INSTANCE_URL --no-prompt --set-default
     ```
 
 - Some tools requiere the working directory to be the root of a Salesforce project.

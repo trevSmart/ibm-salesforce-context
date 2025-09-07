@@ -1,0 +1,6 @@
+---
+description: For gathering development knowledge about the specific patterns and best practices for leveraging the Model Context Protocol (MCP) Typescript SDK, which this project is built on.
+alwaysApply: false
+---
+
+Use Context7 with the library "/modelcontextprotocol/typescript-sdk".

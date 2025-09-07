@@ -48,7 +48,6 @@ tmp/
 *old.*
 *.new*
 *new.*
-.cursor/
 .nvmrc
 
 # Python virtual environment

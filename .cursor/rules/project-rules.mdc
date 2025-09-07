@@ -1,0 +1,22 @@
+---
+alwaysApply: true
+---
+Always apply these rules to the project.
+
+
+## General Guidelines
+Respond in the same language as the user's message. In case of doubt, use Catalan.
+You can act without asking for confirmation as long as the action is non destructive.
+
+## Code Generation and Modification Guidelines
+All code must be en english, use camelCase for naming.
+
+When generating or modifying code, follow these guidelines:
+
+### After Code Changes
+- **Do not immediately test the new behavior** by executing the tool right after making changes
+- **Wait for the user to restart the MCP server** - The user needs to manually restart the MCP server in order for the changes to be picked up. Ask the user to notify you when they have restarted the MCP server
+- **Then test** - Only execute tests your changes after the user has restarted the MCP server
+
+## Code Style Guidelines
+- Use meaningful names for variables and functions, classes and modules.

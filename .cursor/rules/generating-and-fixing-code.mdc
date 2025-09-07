@@ -1,0 +1,17 @@
+---
+description: ⚠️ ASK USER TO RESTART MCP SERVER AFTER EVERY CHANGE (MANDATORY) ⚠️
+alwaysApply: true
+---
+
+## BEFORE testing your code changes
+- **Do not immediately test the new behavior** by executing the tool right after making code changes
+- **Wait for MCP server restart** - The IDE needs to be restarted BY THE USER to pick up your code changes
+- **Request confirmation** - Ask the user to notify you when they have restarted the MCP server
+- **Then test** - Only execute the tool to test the new behavior after confirming the server has been restarted
+
+### Testing Workflow
+1. Complete code generation or modification
+2. Inform the user that the MCP server needs to be restarted, ask him to restart to notify you when the restart is complete
+3. Once the server is restarted, execute the tool to verify the new behavior
+
+This ensures that code changes are properly loaded before testing and prevents errors from testing outdated code.
