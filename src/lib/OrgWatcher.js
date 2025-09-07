@@ -1,6 +1,7 @@
 import {EventEmitter} from 'node:events';
 import fs from 'node:fs';
 import path from 'node:path';
+import chokidar from 'chokidar';
 import {createModuleLogger} from './logger.js';
 
 const logger = createModuleLogger(import.meta.url);
@@ -13,7 +14,7 @@ class TargetOrgWatcher extends EventEmitter {
 		this.fileWatcher = null;
 		this.isWatching = false;
 		this.debounceMs = 5000; // Debounce file system events to reduce noise
-		this.debounceTimer = null;
+		// this.debounceTimer = null;
 	}
 
 	async start(onChange, currentOrgAlias = null) {
@@ -32,11 +33,20 @@ class TargetOrgWatcher extends EventEmitter {
 			this.on('orgChanged', onChange);
 			this.on('error', (error) => logger.error(error, 'Error in Salesforce CLI target org watcher'));
 
+			/*
 			this.fileWatcher = fs.watch(path.dirname(this.configFilePath), (eventType, filename) => {
 				if (filename === 'config.json' && eventType === 'change') {
 					this.debouncedCheck();
 				}
 			});
+			*/
+
+			this.fileWatcher = chokidar.watch(this.configFilePath, {
+				ignoreInitial: true,
+				awaitWriteFinish: {stabilityThreshold: this.debounceMs}
+			});
+			this.fileWatcher.on('change', () => this.check());
+			this.fileWatcher.on('error', (error) => this.emit('error', error));
 
 			this.isWatching = true;
 			this.emit('started', this.currentOrgAlias);
@@ -52,23 +62,30 @@ class TargetOrgWatcher extends EventEmitter {
 
 		logger.debug('Stopping Salesforce CLI target org watcher');
 		if (this.fileWatcher) {
-			this.fileWatcher.close();
+			// this.fileWatcher.close();
+			await this.fileWatcher.close();
 			this.fileWatcher = null;
 		}
+
+		/*
 		if (this.debounceTimer) {
 			clearTimeout(this.debounceTimer);
 			this.debounceTimer = null;
 		}
+		*/
+
 		// Cleanup all event listeners to prevent memory leaks
 		this.removeAllListeners();
 		this.isWatching = false;
 		this.emit('stopped');
 	}
 
+	/*
 	debouncedCheck() {
 		this.debounceTimer && clearTimeout(this.debounceTimer);
 		this.debounceTimer = setTimeout(() => this.check(), this.debounceMs);
 	}
+	*/
 
 	check() {
 		try {
