@@ -115,7 +115,7 @@
                 "useVsCodeApi": true,
                 "command": "workbench.action.tasks.runTask",
                 "args": [
-                    "npm: publish-package"
+                    "Publish server package"
                 ],
                 "color": "#ac5858"
             }

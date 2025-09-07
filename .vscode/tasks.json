@@ -103,14 +103,14 @@
 		},
 		{
 			"type": "npm",
-			"script": "publish",
+			"script": "publish-package",
 			"group": {
 				"kind": "build",
 				"isDefault": true
 			},
 			"problemMatcher": [],
-			"label": "npm: publish",
-			"detail": "sh dev/publish-package.sh",
+			"label": "Publish server package",
+			"detail": "Publish server package to npm",
 			"presentation": {
 				"showReuseMessage": false,
 				"close": false,
