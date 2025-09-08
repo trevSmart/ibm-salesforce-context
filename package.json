@@ -12,6 +12,7 @@
 	},
 	"scripts": {
 		"lint:fix": "biome check . --write --unsafe",
+		"update-readme": "node dev/updateReadme.js",
 		"test:mcpInspector": "sh dev/startMcpInspector.sh",
 		"test": "vitest --silent --run",
 		"test:cov": "c8 -o coverage --reporter=text --reporter=html vitest run",
