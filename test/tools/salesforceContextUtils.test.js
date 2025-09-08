@@ -60,13 +60,36 @@ describe('salesforceContextUtils', () => {
 		expect(result?.structuredContent?.action).toBe('clearCache')
 	})
 
-	test('reportIssue', async () => {
+	test('reportIssue with valid detailed description', async () => {
 		const result = await client.callTool('salesforceContextUtils', {
 			action: 'reportIssue',
-			issueDescription: 'Test issue for validation',
-			issueToolName: 'testTool',
+			issueDescription: 'When executing SOQL query "SELECT Id FROM Account LIMIT 1" using executeSoqlQuery tool, getting error "INVALID_FIELD: No such column \'Id\' on entity \'Account\'" despite Id being a standard field. This occurs consistently in the current org environment.',
+			issueToolName: 'executeSoqlQuery',
 		})
+		console.log('Valid test result:', JSON.stringify(result, null, 2))
 		expect(result?.structuredContent?.success).toBe(true)
 		expect(result.structuredContent.issueId).toBeTruthy()
+	})
+
+	test('reportIssue with insufficient details should fail', async () => {
+		const result = await client.callTool('salesforceContextUtils', {
+			action: 'reportIssue',
+			issueDescription: 'There is a problem with the tool and it is not working properly for me',
+			issueToolName: 'testTool',
+		})
+		console.log('Invalid test result:', JSON.stringify(result, null, 2))
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toMatch(/too generic|lacks sufficient technical details/)
+	})
+
+	test('reportIssue with generic description should fail', async () => {
+		const result = await client.callTool('salesforceContextUtils', {
+			action: 'reportIssue',
+			issueDescription: 'I need help with this tool because it is not working for me',
+			issueToolName: 'testTool',
+		})
+		console.log('Generic test result:', JSON.stringify(result, null, 2))
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toMatch(/too generic|lacks sufficient technical details/)
 	})
 })

@@ -7,7 +7,7 @@ export async function createMcpClient() {
 	const transport = new StreamableHTTPClientTransport(BASE_URL)
 	const coreClient = new Client(
 		{ name: 'vitest-test-client', version: '1.0.0' },
-		{ capabilities: { logging: {} }, prompts: {} },
+		{ capabilities: { logging: {}, sampling: {}, elicitation: {} }, prompts: {} },
 	)
 	await coreClient.connect(transport)
 

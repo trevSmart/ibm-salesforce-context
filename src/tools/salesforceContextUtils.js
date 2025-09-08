@@ -181,18 +181,45 @@ export async function salesforceContextUtilsToolHandler({action, issueDescriptio
 				throw new Error('For the reportIssue action, issueDescription is required and must be at least 10 characters long');
 			}
 
-			// Fix issue type as "bug" and derive title from description
-			const issueType = 'bug';
+			// Enhanced pattern-based validation for issue description quality
 			const cleanDescription = issueDescription.trim();
+			
+			// Basic length validation (increased from 10 to 30 characters)
+			if (cleanDescription.length < 30) {
+				throw new Error('Issue description must be at least 30 characters long to provide sufficient detail');
+			}
 
-			// Try to generate title using sampling capability if available
-			let title;
-			let detectedToolName = issueToolName;
+			// Content quality validation - reject common unhelpful phrases
+			const unhelpfulPatterns = [
+				/^(help|problem|issue|error|trouble|need help|something wrong)$/i,
+				/^(report an issue|there is a problem|i have a problem)$/i,
+				/^(it doesn't work|not working|broken|fix this)$/i,
+				/^(please help|can you help|assistance needed)$/i
+			];
 
-			// Fix severity to medium
-			const issueSeverity = 'medium';
+			const isUnhelpful = unhelpfulPatterns.some(pattern => pattern.test(cleanDescription));
+			if (isUnhelpful) {
+				throw new Error('Issue description is too generic. Please provide specific technical details including what you were trying to do, what happened, and any error messages');
+			}
 
-			// Import required dependencies at the beginning
+			// Check for meaningful technical content
+			const hasTechnicalIndicators = [
+				/error|exception|failed|failure/i,
+				/\b(SOQL|query|SELECT|FROM|WHERE|Apex|SObject|Salesforce)\b/i,
+				/\b(tool|function|method|API|endpoint)\b/i,
+				/\b(when|while|after|during|trying to|attempting to)\b/i,
+				/"[^"]+"|'[^']+'|\b\w+\.\w+|\b[A-Z_]{3,}/  // Quoted strings, dotted notation, or constants
+			];
+
+			const technicalScore = hasTechnicalIndicators.reduce((score, pattern) => {
+				return score + (pattern.test(cleanDescription) ? 1 : 0);
+			}, 0);
+
+			if (technicalScore < 2) {
+				throw new Error('Issue description lacks sufficient technical details. Please include specific information such as: tool names, error messages, what you were trying to do, steps to reproduce, or technical context');
+			}
+
+			// Import required dependencies for title generation
 			let mcpServer;
 			try {
 				const mcpServerModule = await import('../mcp-server.js');
@@ -202,7 +229,17 @@ export async function salesforceContextUtilsToolHandler({action, issueDescriptio
 				mcpServer = null;
 			}
 
-			if (client.supportsCapability('sampling') && mcpServer) {
+			// Fix issue type as "bug" and derive title from description
+			const issueType = 'bug';
+
+			// Try to generate title using sampling capability if available
+			let title;
+			let detectedToolName = issueToolName;
+
+			// Fix severity to medium
+			const issueSeverity = 'medium';
+
+			if (client.supportsCapability('sampling') && mcpServer && !process.env.MCP_SKIP_SAMPLING) {
 				try {
 					// If no tool name specified, try to detect it from description
 					if (!detectedToolName || detectedToolName === 'Unknown') {
