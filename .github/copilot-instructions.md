@@ -9,7 +9,6 @@ Always reference these instructions first and fallback to search or bash command
 - **Bootstrap the repository**:
   - `npm ci` -- installs dependencies in ~15 seconds. NEVER CANCEL.
   - Note: Node v22.7.0+ required (engines specified in package.json). Lower versions show warnings but work.
-  - Salesforce CLI available locally: `npm install @salesforce/cli --save-dev` -- takes ~52 seconds. NEVER CANCEL.
 
 - **Linting and code quality**:
   - `npm run lint:fix` -- runs Biome linter/formatter in ~1 second. NEVER CANCEL.
