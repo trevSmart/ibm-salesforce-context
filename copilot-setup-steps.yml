@@ -1,0 +1,303 @@
+# IBM Salesforce Context MCP Server - Copilot Setup Steps
+# This file defines the setup steps required to prepare the development environment
+# as described in AGENTS.md
+
+name: IBM Salesforce Context MCP Server Setup
+
+description: |
+  Sets up the development environment for IBM Salesforce Context MCP Server.
+  This includes Node.js installation, Salesforce CLI setup, project dependencies,
+  and Salesforce org connection as described in AGENTS.md.
+
+steps:
+  - name: Check Node.js Version
+    description: Verify Node.js version is >= 22.7.0
+    command: |
+      if ! command -v node &> /dev/null; then
+        echo "Node.js is not installed. Please install Node.js version 22.7.0 or higher."
+        echo "Visit: https://nodejs.org/"
+        exit 1
+      fi
+
+      NODE_VERSION=$(node --version | sed 's/v//')
+      REQUIRED_VERSION="22.7.0"
+
+      if ! node -e "
+        const semver = require('semver');
+        if (!semver.gte('$NODE_VERSION', '$REQUIRED_VERSION')) {
+          console.error('Node.js version $NODE_VERSION is too old. Required: $REQUIRED_VERSION or higher');
+          process.exit(1);
+        }
+        console.log('Node.js version $NODE_VERSION is compatible');
+      " 2>/dev/null; then
+        echo "Node.js version $NODE_VERSION is too old. Required: $REQUIRED_VERSION or higher"
+        echo "Please update Node.js from: https://nodejs.org/"
+        exit 1
+      fi
+
+      echo "✅ Node.js version $NODE_VERSION is compatible"
+
+  - name: Install Project Dependencies
+    description: Install npm dependencies including Salesforce CLI
+    command: |
+      echo "Installing project dependencies..."
+      npm install
+
+      echo "Installing Salesforce CLI as dev dependency..."
+      npm install @salesforce/cli --save-dev
+
+      echo "✅ Dependencies installed successfully"
+
+  - name: Verify Salesforce CLI Installation
+    description: Check if Salesforce CLI is available and working
+    command: |
+      echo "Checking Salesforce CLI installation..."
+
+      if ! command -v sf &> /dev/null; then
+        echo "Salesforce CLI not found in PATH. Checking local installation..."
+
+        if [ -f "./node_modules/.bin/sf" ]; then
+          echo "Salesforce CLI found in node_modules. Adding to PATH..."
+          export PATH="./node_modules/.bin:$PATH"
+        else
+          echo "❌ Salesforce CLI not found. Please install it manually:"
+          echo "npm install @salesforce/cli --save-dev"
+          exit 1
+        fi
+      fi
+
+      echo "Salesforce CLI version:"
+      sf version
+      echo "✅ Salesforce CLI is available"
+
+  - name: Setup Environment Variables
+    description: Create .env file with required configuration
+    command: |
+      echo "Setting up environment variables..."
+
+      if [ ! -f ".env" ]; then
+        echo "Creating .env file from .env.example..."
+        cp .env.example .env
+
+        echo "⚠️  Please edit .env file with your Salesforce org credentials:"
+        echo "   - SF_ORG_URL"
+        echo "   - SF_ORG_CLIENT_ID"
+        echo "   - SF_ORG_CLIENT_SECRET"
+        echo "   - SF_ORG_CLIENT_USERNAME"
+        echo "   - SF_ORG_CLIENT_PASSWORD"
+        echo "   - MCP_TEST_USER"
+        echo ""
+        echo "You can also set WORKSPACE_FOLDER_PATHS to point to your Salesforce project."
+      else
+        echo "✅ .env file already exists"
+      fi
+
+  - name: Create Salesforce Project Structure
+    description: Generate a Salesforce project if not present
+    command: |
+      echo "Checking for Salesforce project structure..."
+
+      if [ ! -f "sfdx-project.json" ] || [ ! -d "force-app/main/default/" ]; then
+        echo "Salesforce project structure not found. Creating test project..."
+
+        # Create a temporary Salesforce project
+        sf project generate --name SalesforceTestProject --template standard
+
+        if [ $? -eq 0 ]; then
+          echo "✅ Salesforce test project created successfully"
+          echo "Project structure:"
+          ls -la sfdx-project.json force-app/main/default/ 2>/dev/null || echo "Project files created"
+        else
+          echo "❌ Failed to create Salesforce project. Please create manually:"
+          echo "sf project generate --name SalesforceTestProject"
+          exit 1
+        fi
+      else
+        echo "✅ Salesforce project structure already exists"
+      fi
+
+  - name: Setup Salesforce Org Connection
+    description: Connect to Salesforce org using environment variables
+    command: |
+      echo "Setting up Salesforce org connection..."
+
+      # Source environment variables
+      if [ -f ".env" ]; then
+        source .env
+      else
+        echo "❌ .env file not found. Please create it first."
+        exit 1
+      fi
+
+      # Check if already connected
+      if sf org display --json &> /dev/null; then
+        echo "✅ Already connected to a Salesforce org"
+        sf org display
+      else
+        echo "Attempting to connect to Salesforce org..."
+
+        # Check if required environment variables are set
+        if [ -z "$SF_ORG_CLIENT_ID" ] || [ -z "$SF_ORG_CLIENT_SECRET" ] || [ -z "$SF_ORG_CLIENT_USERNAME" ] || [ -z "$SF_ORG_CLIENT_PASSWORD" ]; then
+          echo "❌ Missing required Salesforce org credentials in .env file:"
+          echo "   Please set: SF_ORG_CLIENT_ID, SF_ORG_CLIENT_SECRET, SF_ORG_CLIENT_USERNAME, SF_ORG_CLIENT_PASSWORD"
+          echo ""
+          echo "You can also connect manually using:"
+          echo "sf org login web --set-default"
+          exit 1
+        fi
+
+        # Authenticate using OAuth2 password flow
+        echo "Authenticating with Salesforce org..."
+
+        response=$(curl -s -X POST "$SF_ORG_URL/services/oauth2/token" \
+          -H "Content-Type: application/x-www-form-urlencoded" \
+          -d "grant_type=password" \
+          -d "client_id=$SF_ORG_CLIENT_ID" \
+          -d "client_secret=$SF_ORG_CLIENT_SECRET" \
+          -d "username=$SF_ORG_CLIENT_USERNAME" \
+          -d "password=$SF_ORG_CLIENT_PASSWORD")
+
+        if [ $? -ne 0 ]; then
+          echo "❌ Failed to authenticate with Salesforce org"
+          exit 1
+        fi
+
+        # Extract access token and instance URL
+        SF_ACCESS_TOKEN=$(echo "$response" | jq -r '.access_token' 2>/dev/null)
+        SF_INSTANCE_URL=$(echo "$response" | jq -r '.instance_url' 2>/dev/null)
+
+        if [ "$SF_ACCESS_TOKEN" = "null" ] || [ -z "$SF_ACCESS_TOKEN" ]; then
+          echo "❌ Failed to get access token. Response:"
+          echo "$response"
+          echo ""
+          echo "Please check your credentials in .env file"
+          exit 1
+        fi
+
+        # Login using access token
+        sf org login access-token --instance-url "$SF_INSTANCE_URL" --no-prompt --set-default
+
+        if [ $? -eq 0 ]; then
+          echo "✅ Successfully connected to Salesforce org"
+          sf org display
+        else
+          echo "❌ Failed to connect to Salesforce org"
+          exit 1
+        fi
+      fi
+
+  - name: Verify Setup
+    description: Run final verification checks
+    command: |
+      echo "Running final verification checks..."
+
+      # Check Node.js
+      echo "Node.js version: $(node --version)"
+
+      # Check Salesforce CLI
+      echo "Salesforce CLI version:"
+      sf version
+
+      # Check org connection
+      echo "Salesforce org connection:"
+      sf org display --json | jq -r '.result.username + " (" + .result.orgId + ")"' 2>/dev/null || echo "❌ Not connected to org"
+
+      # Check project structure
+      if [ -f "sfdx-project.json" ] && [ -d "force-app/main/default/" ]; then
+        echo "✅ Salesforce project structure: OK"
+      else
+        echo "❌ Salesforce project structure: Missing"
+      fi
+
+      # Check environment file
+      if [ -f ".env" ]; then
+        echo "✅ Environment configuration: OK"
+      else
+        echo "❌ Environment configuration: Missing"
+      fi
+
+      echo ""
+      echo "🎉 Setup completed! You can now:"
+      echo "   - Run tests: npm run test"
+      echo "   - Start the MCP server: npm run start"
+      echo "   - Run linting: npm run lint:fix"
+
+# Optional: Additional setup steps for specific use cases
+optional_steps:
+  - name: Setup HTTP Transport
+    description: Configure MCP server for HTTP transport
+    command: |
+      echo "Setting up HTTP transport..."
+
+      if [ -f ".env" ]; then
+        # Update .env to use HTTP transport
+        sed -i.bak 's/MCP_TRANSPORT=stdio/MCP_TRANSPORT=http/' .env
+        echo "✅ HTTP transport configured in .env"
+        echo "You can start the server with: npm run start"
+      else
+        echo "❌ .env file not found. Please run the main setup first."
+      fi
+
+  - name: Run Tests
+    description: Run the test suite to verify everything works
+    command: |
+      echo "Running test suite..."
+      npm run test
+
+      if [ $? -eq 0 ]; then
+        echo "✅ All tests passed!"
+      else
+        echo "❌ Some tests failed. Check the output above."
+      fi
+
+# Environment requirements
+requirements:
+  - name: Node.js
+    version: ">=22.7.0"
+    description: "Required for running the MCP server"
+
+  - name: npm
+    description: "Package manager for dependencies"
+
+  - name: Salesforce CLI
+    description: "Required for Salesforce org operations"
+
+  - name: jq
+    description: "JSON processor for parsing API responses"
+    optional: true
+
+# Troubleshooting section
+troubleshooting:
+  - issue: "Node.js version too old"
+    solution: |
+      Update Node.js to version 22.7.0 or higher:
+      - Visit https://nodejs.org/
+      - Download and install the latest LTS version
+      - Restart your terminal
+
+  - issue: "Salesforce CLI not found"
+    solution: |
+      Install Salesforce CLI:
+      npm install @salesforce/cli --save-dev
+
+      Or install globally:
+      npm install -g @salesforce/cli
+
+  - issue: "Authentication failed"
+    solution: |
+      Check your .env file credentials:
+      - SF_ORG_URL (e.g., https://test.salesforce.com)
+      - SF_ORG_CLIENT_ID (from Connected App)
+      - SF_ORG_CLIENT_SECRET (from Connected App)
+      - SF_ORG_CLIENT_USERNAME (your username)
+      - SF_ORG_CLIENT_PASSWORD (password + security token)
+
+      Or connect manually:
+      sf org login web --set-default
+
+  - issue: "Missing Salesforce project structure"
+    solution: |
+      Create a Salesforce project:
+      sf project generate --name SalesforceTestProject
+
+      Or set WORKSPACE_FOLDER_PATHS in .env to point to an existing project.

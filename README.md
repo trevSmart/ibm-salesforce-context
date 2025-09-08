@@ -52,7 +52,7 @@ First, add IBM Salesforce Context to your client. A typical configuration looks 
     "salesforce": {
       "command": "npx",
       "args": [
-        "<package-name>@latest"
+        "test_research4@latest"
       ]
     }
   }
@@ -67,28 +67,28 @@ IBM Salesforce Context supports comprehensive CLI arguments for configuration:
 
 ```bash
 # Use stdio transport (default)
-<package-name>
+test_research4
 
 # Use HTTP transport
-<package-name> --transport http
+test_research4 --transport http
 
 # Use HTTP transport with custom port
-<package-name> --transport http --port 8080
+test_research4 --transport http --port 8080
 
 # HTTP transport automatically finds available port if default is occupied
-<package-name> --transport http  # Will use 3001, 3002, etc. if 3000 is busy
+test_research4 --transport http  # Will use 3001, 3002, etc. if 3000 is busy
 
 # Set log level
-<package-name> --transport stdio --log-level debug
+test_research4 --transport stdio --log-level debug
 
 # Set workspace paths
-<package-name> --transport http --workspace /path/to/project
+test_research4 --transport http --workspace /path/to/project
 
 # Show help
-<package-name> --help
+test_research4 --help
 
 # Show version
-<package-name> --version
+test_research4 --version
 ```
 
 #### CLI Arguments
@@ -188,19 +188,19 @@ Configuration values are applied in the following priority order:
 
 ```bash
 # CLI argument overrides environment variable
-MCP_TRANSPORT=http <package-name> --transport stdio  # Result: stdio
+MCP_TRANSPORT=http test_research4 --transport stdio  # Result: stdio
 
 # Environment variable when no CLI argument
-MCP_TRANSPORT=http <package-name>  # Result: http
+MCP_TRANSPORT=http test_research4  # Result: http
 
 # Default when no CLI or environment variable
-<package-name>  # Result: stdio
+test_research4  # Result: stdio
 
 # Complex configuration
-<package-name> --transport http --port 3001 --log-level debug --workspace /path/to/project
+test_research4 --transport http --port 3001 --log-level debug --workspace /path/to/project
 ```
 
-[<img src="https://img.shields.io/badge/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF" alt="Install in VS Code">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522salesforce%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522<package-name>%2540latest%2522%255D%257D) [<img alt="Install in VS Code Insiders" src="https://img.shields.io/badge/VS_Code_Insiders-VS_Code_Insiders?style=flat-square&label=Install%20Server&color=24bfa5">](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522salesforce%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522<package-name>%2540latest%2522%255D%257D)
+[<img src="https://img.shields.io/badge/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF" alt="Install in VS Code">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522salesforce%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522test_research4%2540latest%2522%255D%257D) [<img alt="Install in VS Code Insiders" src="https://img.shields.io/badge/VS_Code_Insiders-VS_Code_Insiders?style=flat-square&label=Install%20Server&color=24bfa5">](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522salesforce%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522test_research4%2540latest%2522%255D%257D)
 
 <details><summary><b>Install in VS Code</b></summary>
 After installation, IBM Salesforce Context will be available for use with your GitHub Copilot agent in VS Code.
@@ -215,7 +215,7 @@ After installation, IBM Salesforce Context will be available for use with your G
 
 #### Or install manually:
 
-Go to `Cursor Settings` -> `MCP` -> `Add new MCP Server`. Name to your liking, use `command` type with the command `npx <package-name>`. You can also verify config or add command like arguments via clicking `Edit`.
+Go to `Cursor Settings` -> `MCP` -> `Add new MCP Server`. Name to your liking, use `command` type with the command `npx test_research4`. You can also verify config or add command like arguments via clicking `Edit`.
 
 ```js
 {
@@ -223,7 +223,7 @@ Go to `Cursor Settings` -> `MCP` -> `Add new MCP Server`. Name to your liking, u
     "salesforce": {
       "command": "npx",
       "args": [
-        "<package-name>@latest",
+        "test_research4@latest",
         "--transport",
         "stdio"
       ]
@@ -240,7 +240,7 @@ You can customize the server with CLI arguments:
     "salesforce": {
       "command": "npx",
       "args": [
-        "<package-name>@latest",
+        "test_research4@latest",
         "--transport",
         "http",
         "--port",
@@ -265,7 +265,7 @@ Follow Windsurf MCP [documentation](https://docs.windsurf.com/windsurf/cascade/m
     "salesforce": {
       "command": "npx",
       "args": [
-        "<package-name>@latest",
+        "test_research4@latest",
         "--transport",
         "stdio"
       ]
@@ -282,7 +282,7 @@ You can customize with additional CLI arguments:
     "salesforce": {
       "command": "npx",
       "args": [
-        "<package-name>@latest",
+        "test_research4@latest",
         "--transport",
         "http",
         "--port",
@@ -307,7 +307,7 @@ Follow the MCP install [guide](https://modelcontextprotocol.io/quickstart/user),
     "salesforce": {
       "command": "npx",
       "args": [
-        "<package-name>@latest",
+        "test_research4@latest",
         "--transport",
         "stdio"
       ]
@@ -324,7 +324,7 @@ You can customize with CLI arguments:
     "salesforce": {
       "command": "npx",
       "args": [
-        "<package-name>@latest",
+        "test_research4@latest",
         "--transport",
         "http",
         "--port",
@@ -343,10 +343,10 @@ Use the Claude Code CLI to add IBM Salesforce Context:
 
 ```bash
 # Basic installation
-claude mcp add salesforce npx <package-name>@latest
+claude mcp add salesforce npx test_research4@latest
 
 # With CLI arguments
-claude mcp add salesforce "npx <package-name>@latest --transport http --port 3000"
+claude mcp add salesforce "npx test_research4@latest --transport http --port 3000"
 ```
 </details>
 
@@ -361,7 +361,7 @@ Follow the MCP install [guide](https://github.com/google-gemini/gemini-cli/blob/
     "salesforce": {
       "command": "npx",
       "args": [
-        "<package-name>@latest",
+        "test_research4@latest",
         "--transport",
         "stdio"
       ]
@@ -378,7 +378,7 @@ You can customize with CLI arguments:
     "salesforce": {
       "command": "npx",
       "args": [
-        "<package-name>@latest",
+        "test_research4@latest",
         "--transport",
         "http",
         "--port",
