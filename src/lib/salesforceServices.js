@@ -526,7 +526,7 @@ export async function getApexClassCodeCoverage(classNames = []) {
 		}
 
 		// Escape single quotes in names for SOQL
-		const escapedNames = filteredNames.map((n) => `'${String(n).replace(/'/g, "\\'")}'`).join(',');
+		const escapedNames = filteredNames.map((n) => `'${String(n).replace(/([\\'])/g, '\\$1')}'`).join(',');
 
 		// Ensure all requested classes exist in the org (use Tooling API ApexClass)
 		const soqlExistingClasses = `SELECT Id, Name FROM ApexClass WHERE Name IN (${escapedNames})`;
