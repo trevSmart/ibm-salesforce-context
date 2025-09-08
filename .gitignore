@@ -67,3 +67,7 @@ __pycache__/
 
 # Jest
 coverage/
+.test-artifacts/
+
+# NPM
+.npm-cache
