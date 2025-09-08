@@ -1,4 +1,4 @@
-import {exec as execCb} from 'node:child_process';
+import {exec as execCb, execFile} from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {promisify} from 'node:util';
@@ -9,6 +9,7 @@ import {cleanupObsoleteTempFiles, ensureBaseTmpDir} from './tempManager.js';
 import {withTimeout} from '../utils.js';
 
 const exec = promisify(execCb);
+const execFileAsync = promisify(execFile);
 const logger = createModuleLogger(import.meta.url);
 
 /**
@@ -1018,29 +1019,33 @@ export async function callSalesforceApi(operation, apiType, service, body = null
 
 		// Helper function that performs a curl request but returns a fetch-like response
 		const curlAsFetch = async (endpointUrl, requestOptions) => {
-			// Build curl command
-			let curlCommand = `curl -s -w "HTTPSTATUS:%{http_code}" -X ${requestOptions.method} "${endpointUrl}"`;
+			// Build curl argument array
+			const curlArgs = [
+				'-s',
+				'-w',
+				'HTTPSTATUS:%{http_code}',
+				'-X',
+				`${requestOptions.method}`,
+				`${endpointUrl}`
+			];
 
 			// Add headers
 			if (requestOptions.headers) {
 				for (const [key, value] of Object.entries(requestOptions.headers)) {
-					if (key.toLowerCase() === 'authorization') {
-						// Use single quotes for Authorization header to avoid issues with special characters
-						curlCommand += ` -H '${key}: ${value}'`;
-					} else {
-						curlCommand += ` -H "${key}: ${value}"`;
-					}
+					curlArgs.push('-H');
+					curlArgs.push(`${key}: ${value}`);
 				}
 			}
 
-			// Add body - don't double-quote since body is already JSON stringified
+			// Add body - already JSON stringified
 			if (requestOptions.body) {
-				curlCommand += ` -d '${requestOptions.body}'`;
+				curlArgs.push('-d');
+				curlArgs.push(`${requestOptions.body}`);
 			}
 
-			logger.debug(`Executing curl command: ${curlCommand}`);
+			logger.debug(`Executing curl: curl ${curlArgs.map(a => JSON.stringify(a)).join(' ')}`);
 
-			const {stdout} = await exec(curlCommand);
+			const {stdout} = await execFileAsync('curl', curlArgs);
 			const httpStatusMatch = stdout.match(/HTTPSTATUS:(\d+)/);
 			const status = httpStatusMatch ? Number.parseInt(httpStatusMatch[1], 10) : 200;
 			const bodyText = stdout.replace(/HTTPSTATUS:\d+/, '').trim();
