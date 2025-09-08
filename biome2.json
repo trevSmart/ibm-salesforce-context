@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.2.3/schema.json",
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
@@ -311,14 +311,6 @@
 				"useSimplifiedLogicExpression": "error",
 				"useWhile": "error"
 			}
-		}
-	},
-	"javascript": {
-		"formatter": {
-			"quoteStyle": "single",
-			"semicolons": "always",
-			"trailingCommas": "none",
-			"bracketSpacing": false
 		}
 	},
 	"assist": {

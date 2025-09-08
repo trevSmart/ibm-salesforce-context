@@ -6,14 +6,12 @@ import client from './client.js';
 import config from './config.js';
 import {createModuleLogger} from './lib/logger.js';
 import targetOrgWatcher from './lib/OrgWatcher.js';
-import {getOrgAndUserDetails, executeSoqlQuery} from './lib/salesforceServices.js';
+import {executeSoqlQuery, getOrgAndUserDetails} from './lib/salesforceServices.js';
 import {connectTransport} from './lib/transport.js';
-import {getAgentInstructions, withTimeout} from './utils.js';
 //Prompts
 //import { codeModificationPromptDefinition, codeModificationPrompt } from './prompts/codeModificationPrompt.js';
 import {apexRunScriptPrompt, apexRunScriptPromptDefinition} from './prompts/apex-run-script.js';
 import {toolsBasicRunPromptDefinition, toolsBasicRunPromptHandler} from './prompts/call-all-tools.js';
-
 //Tools
 import {apexDebugLogsToolDefinition} from './tools/apexDebugLogs.js';
 import {createMetadataToolDefinition} from './tools/createMetadata.js';
@@ -29,6 +27,7 @@ import {getSetupAuditTrailToolDefinition} from './tools/getSetupAuditTrail.js';
 import {invokeApexRestResourceToolDefinition} from './tools/invokeApexRestResource.js';
 import {runApexTestToolDefinition} from './tools/runApexTest.js';
 import {salesforceContextUtilsToolDefinition, salesforceContextUtilsToolHandler} from './tools/salesforceContextUtils.js';
+import {getAgentInstructions, withTimeout} from './utils.js';
 
 // Define state object here instead of importing it
 export const state = {
@@ -117,13 +116,25 @@ async function updateOrgAndUserDetails() {
 		if (currentUsername !== newUsername) {
 			clearResources();
 			try {
-				const result = await executeSoqlQuery(`SELECT Id FROM PermissionSetAssignment WHERE Assignee.Username = '${state.org.username}' AND PermissionSet.Name = 'IBM_SalesforceContextUser'`);
+				const result = await executeSoqlQuery(`SELECT Id, Name, Profile.Name, UserRole.Name
+					FROM User WHERE Username = '${state.org.username}'
+					AND Id IN (SELECT AssigneeId FROM PermissionSetAssignment WHERE PermissionSet.Name = 'IBM_SalesforceContextUser')`);
+
 				if (result?.records?.length) {
-					state.org.user.id = result.records[0].Id;
+					const user = result.records[0];
+					state.org.user = {
+						id: user.Id,
+						username: user.Username,
+						name: user.Name,
+						profileName: user.Profile.Name,
+						userRoleName: user.UserRole.Name
+					};
 					state.userValidated = true;
+
+					newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(state.org, null, 3));
 				} else {
 					state.userValidated = false;
-					logger.error(`Insufficient permissions in org "${state.org.alias}" for user "${newUsername}"`);
+					logger.error(`User "${newUsername}" not found or with insufficient permissions in org "${state.org.alias}"`);
 				}
 			} catch (error) {
 				state.userValidated = false;
@@ -139,7 +150,6 @@ async function updateOrgAndUserDetails() {
 		if (typeof resolveOrgReady === 'function') {
 			resolveOrgReady();
 		}
-
 	} catch (error) {
 		logger.error(error, 'Error updating org and user details');
 		// console.error(error);
@@ -213,9 +223,15 @@ function registerHandlers() {
 		}
 	});
 
-	mcpServer.server.setRequestHandler(ListResourcesRequestSchema, async () => ({resources: Object.values(resources)}));
-	mcpServer.server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => ({resourceTemplates: []}));
-	mcpServer.server.setRequestHandler(ReadResourceRequestSchema, async ({params: {uri}}) => ({contents: [{uri, ...resources[uri]}]}));
+	mcpServer.server.setRequestHandler(ListResourcesRequestSchema, async () => ({
+		resources: Object.values(resources)
+	}));
+	mcpServer.server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => ({
+		resourceTemplates: []
+	}));
+	mcpServer.server.setRequestHandler(ReadResourceRequestSchema, async ({params: {uri}}) => ({
+		contents: [{uri, ...resources[uri]}]
+	}));
 
 	// mcpServer.registerPrompt('code-modification', codeModificationPromptDefinition, codeModificationPrompt);
 	mcpServer.registerPrompt('apex-run-script', apexRunScriptPromptDefinition, apexRunScriptPrompt);
@@ -307,38 +323,19 @@ function registerHandlers() {
 
 			//Lògica post-inicialització
 			const postInitialization = async () => {
-
-				// Iniciar el watcher
-				targetOrgWatcher.start(updateOrgAndUserDetails, state.org?.alias);
-
-				// Verificar que state.org estigui correctament inicialitzat abans de continuar
 				if (!state.org.username) {
 					logger.error('Org details not available, skipping post-initialization logic');
 					throw new Error('Org details not available');
 				}
 
-				// Consultar el full name de l'usuari
-				const userResult = await executeSoqlQuery(`SELECT Id, Profile.Name FROM User WHERE Username = '${state.org.username}'`);
-				const user = userResult?.records?.[0];
+				// Iniciar el watcher
+				targetOrgWatcher.start(updateOrgAndUserDetails, state.org?.alias);
 
-				// Consultar el release name
+				// Recupear la release de la org
 				const releasesResult = await fetch(`${state.org.instanceUrl}/services/data/`, {});
 				const releases = await releasesResult.json();
 				const releaseName = releases.find((r) => r.version === state.org.apiVersion)?.label ?? null;
-
-				// Actualitzar l'estat de l'org
-				state.org = {
-					...state.org,
-					releaseName,
-					user: {
-						...state.org.user,
-						id: state.org.user.id ?? user?.Id ?? null,
-						profileName: state.org.user.profileName ?? user?.Profile?.Name ?? null,
-						name: user?.Name ?? null
-					}
-				};
-
-				newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(state.org, null, 3));
+				state.org = {...state.org, releaseName};
 			};
 			postInitialization();
 
@@ -347,7 +344,6 @@ function registerHandlers() {
 			}
 
 			return {protocolVersion, serverInfo, capabilities};
-
 		} catch (error) {
 			logger.error(error, `Error initializing server, stack: ${error.stack}`);
 			throw new Error(`Initialization failed: ${error.message}`);
@@ -373,9 +369,9 @@ export async function setupServer(transport) {
 
 	let connectedMessage;
 	if (transportInfo.transportType === 'stdio') {
-		connectedMessage = 'Connected to stdio transport and ready';
+		connectedMessage = '\x1b[32m✓\x1b[0m Server started with STDIO transport';
 	} else {
-		connectedMessage = `Connected to HTTP transport on port ${transportInfo.port} and ready`;
+		connectedMessage = `Starting server with HTTP transport on port ${transportInfo.port}`;
 	}
 
 	logger.info(connectedMessage);

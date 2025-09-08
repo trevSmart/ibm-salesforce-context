@@ -7,9 +7,9 @@
 
 // biome-ignore-all lint: <file in progress>
 import {exec} from 'node:child_process';
+import path from 'node:path';
 import {promisify} from 'node:util';
 import fs from 'fs-extra';
-import path from 'node:path';
 import {createModuleLogger} from './logger.js';
 
 const execAsync = promisify(exec);

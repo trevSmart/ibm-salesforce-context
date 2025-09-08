@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vitest/config'
 export default defineConfig({
 	test: {
 		globals: true,
@@ -20,8 +20,8 @@ export default defineConfig({
 				'node_modules/**',
 				'dist/**',
 				'vitest.config.ts',
-				'index.js'
-			]
-		}
-	}
-});
+				'index.js',
+			],
+		},
+	},
+})

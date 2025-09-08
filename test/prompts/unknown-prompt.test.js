@@ -1,22 +1,22 @@
-
-
-import {createMcpClient, disconnectMcpClient} from '../testMcpClient.js';
+import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
 
 describe('unknown-prompt', () => {
-	let client;
+	let client
 
 	beforeAll(async () => {
 		// Create and connect to the MCP server
-		client = await createMcpClient();
-	});
+		client = await createMcpClient()
+	})
 
 	afterAll(async () => {
-		await disconnectMcpClient(client);
-	});
+		await disconnectMcpClient(client)
+	})
 
 	test('prompt does not exist', async () => {
-		await expect(client.getPrompt('non-existent-prompt', {
-			argValue: 'argValue'
-		})).rejects.toThrow();
-	});
-});
+		await expect(
+			client.getPrompt('non-existent-prompt', {
+				argValue: 'argValue',
+			}),
+		).rejects.toThrow()
+	})
+})

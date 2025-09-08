@@ -3,10 +3,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {promisify} from 'node:util';
 import config from '../config.js';
-import {newResource, state} from '../mcp-server.js';
+import {state} from '../mcp-server.js';
 import {createModuleLogger} from './logger.js';
 import {cleanupObsoleteTempFiles, ensureBaseTmpDir} from './tempManager.js';
-import {withTimeout} from '../utils.js';
 
 const exec = promisify(execCb);
 const execFileAsync = promisify(execFile);
@@ -194,7 +193,9 @@ export async function executeSoqlQuery(query, useToolingApi = false) {
 
 		query = query.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 		const apiType = useToolingApi ? 'TOOLING' : 'REST';
-		const response = await callSalesforceApi('GET', apiType, '/query', null, {queryParams: {q: query}});
+		const response = await callSalesforceApi('GET', apiType, '/query', null, {
+			queryParams: {q: query}
+		});
 
 		// Validate response structure
 		if (!response || typeof response !== 'object') {
@@ -237,7 +238,6 @@ export async function getOrgAndUserDetails(skipCache = false) {
 			...orgResult,
 			user: {id: null, username: orgResult.username, profileName: null, name: null}
 		};
-
 	} catch (error) {
 		logger.error(error, 'Error getting org and user details');
 		throw error;
@@ -579,7 +579,7 @@ export async function getApexClassCodeCoverage(classNames = []) {
 		// Only proceed with coverage queries if we have existing classes
 		if (existingNames.length > 0) {
 			// Include relationship Name explicitly in the SELECT
-			const soqlCoverageAggregates = `SELECT ApexClassOrTriggerId, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered FROM ApexCodeCoverageAggregate WHERE ApexClassOrTrigger.Name IN (${existingNames.map((n) => `'${soqlStringLiteralEscape(n)}'`).join(',')})`;
+			const soqlCoverageAggregates = `SELECT ApexClassOrTriggerId, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered FROM ApexCodeCoverageAggregate WHERE ApexClassOrTrigger.Name IN (${existingNames.map((n) => `'${String(n).replace(/([\\'])/g, '\\$1')}'`).join(',')})`;
 			const responseCoverageAggregates = await executeSoqlQuery(soqlCoverageAggregates, true);
 			const coverageAggregates = responseCoverageAggregates?.records || [];
 			const aggregateByName = {};
@@ -1014,14 +1014,7 @@ export async function callSalesforceApi(operation, apiType, service, body = null
 		// Helper function that performs a curl request but returns a fetch-like response
 		const curlAsFetch = async (endpointUrl, requestOptions) => {
 			// Build curl argument array
-			const curlArgs = [
-				'-s',
-				'-w',
-				'HTTPSTATUS:%{http_code}',
-				'-X',
-				`${requestOptions.method}`,
-				`${endpointUrl}`
-			];
+			const curlArgs = ['-s', '-w', 'HTTPSTATUS:%{http_code}', '-X', `${requestOptions.method}`, `${endpointUrl}`];
 
 			// Add headers
 			if (requestOptions.headers) {
@@ -1037,7 +1030,7 @@ export async function callSalesforceApi(operation, apiType, service, body = null
 				curlArgs.push(`${requestOptions.body}`);
 			}
 
-			logger.debug(`Executing curl: curl ${curlArgs.map(a => JSON.stringify(a)).join(' ')}`);
+			logger.debug(`Executing curl: curl ${curlArgs.map((a) => JSON.stringify(a)).join(' ')}`);
 
 			const {stdout} = await execFileAsync('curl', curlArgs);
 			const httpStatusMatch = stdout.match(/HTTPSTATUS:(\d+)/);

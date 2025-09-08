@@ -358,9 +358,7 @@ async function getUserNamesFromUsernames(usernames) {
 		}
 
 		if (toFetch.length) {
-			const usernameList = toFetch.map(
-				username => `'${username.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
-			).join(',');
+			const usernameList = toFetch.map((username) => `'${username.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`).join(',');
 			const soqlQuery = `SELECT Id, Username, Name FROM User WHERE Username IN (${usernameList})`;
 			const queryResult = await executeSoqlQuery(soqlQuery);
 			if (queryResult?.records) {

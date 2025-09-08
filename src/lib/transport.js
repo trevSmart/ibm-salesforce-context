@@ -4,6 +4,7 @@
 // HTTP.
 
 import {createModuleLogger} from './logger.js';
+
 const logger = createModuleLogger(import.meta.url);
 
 /**
@@ -54,6 +55,7 @@ export async function connectTransport(mcpServer, transportType) {
 		case 'stdio': {
 			const {StdioServerTransport} = await import('@modelcontextprotocol/sdk/server/stdio.js');
 			await mcpServer.connect(new StdioServerTransport()).then(() => new Promise((r) => setTimeout(r, 400)));
+			logger.info(`Listening for initialization requests...`);
 			return {transportType: 'stdio'};
 		}
 		case 'http': {
@@ -696,7 +698,7 @@ export async function connectTransport(mcpServer, transportType) {
 					logger.warn(`Port ${requestedPort} is occupied. Using port ${port} instead.`);
 				}
 				httpServer = app.listen(port, () => {
-					logger.info(`🚀 MCP HTTP server running on port ${port}`);
+					logger.info(`\x1b[32m✓\x1b[0m Server started. Listening for initialization requests...`);
 				});
 			} catch (error) {
 				throw new Error(`Failed to start HTTP server: ${error.message}`);

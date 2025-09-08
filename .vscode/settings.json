@@ -102,16 +102,16 @@
                 "color": "#b69955"
             },
             {
-                "name": "$(run) Start",
+                "name": "$(run) Start (HTTP)",
                 "useVsCodeApi": true,
                 "command": "workbench.action.tasks.runTask",
                 "args": [
-                    "Open (HTTP)"
+                    "Start (HTTP)"
                 ],
                 "color": "#0f909c"
             },
             {
-                "name": "$(send) Publish server",
+                "name": "$(package) Publish server",
                 "useVsCodeApi": true,
                 "command": "workbench.action.tasks.runTask",
                 "args": [
@@ -169,5 +169,13 @@
     "files.watcherExclude": {
         "**.npm-cache": true
     },
-    "task.autoDetect": "off"
+    "task.autoDetect": "off",
+    "javascript.format.enable": false,
+    "typescript.format.enable": false,
+    "[javascript]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
 }

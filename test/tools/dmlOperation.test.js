@@ -1,22 +1,21 @@
-
-import {createMcpClient, disconnectMcpClient} from '../testMcpClient.js';
-import {TestData} from '../test-data.js';
+import { TestData } from '../test-data.js'
+import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js'
 
 describe('dmlOperation', () => {
-	let client;
+	let client
 
 	beforeAll(async () => {
 		// Create and connect to the MCP server
-		client = await createMcpClient();
-	});
+		client = await createMcpClient()
+	})
 
 	afterAll(async () => {
-		await disconnectMcpClient(client);
-	});
+		await disconnectMcpClient(client)
+	})
 
 	test('create', async () => {
 		// Verificar que el client està definit
-		expect(client).toBeTruthy();
+		expect(client).toBeTruthy()
 
 		const result = await client.callTool('dmlOperation', {
 			operations: {
@@ -27,15 +26,15 @@ describe('dmlOperation', () => {
 							// biome-ignore lint/style/useNamingConvention: Salesforce field names must be PascalCase
 							Name: 'Test MCP Tool Account',
 							// biome-ignore lint/style/useNamingConvention: Salesforce field names must be PascalCase
-							Description: 'Account created by MCP tool test'
-						}
-					}
-				]
-			}
-		});
+							Description: 'Account created by MCP tool test',
+						},
+					},
+				],
+			},
+		})
 
-		expect(result?.structuredContent?.outcome).toBeTruthyAndDump(result);
-	});
+		expect(result?.structuredContent?.outcome).toBeTruthyAndDump(result)
+	})
 
 	test('update', async () => {
 		const result = await client.callTool('dmlOperation', {
@@ -46,14 +45,14 @@ describe('dmlOperation', () => {
 						recordId: TestData.salesforce.testAccountId,
 						fields: {
 							// biome-ignore lint/style/useNamingConvention: Salesforce field names must be PascalCase
-							Description: `Updated by MCP Tool test at ${new Date().toISOString()}`
-						}
-					}
-				]
-			}
-		});
+							Description: `Updated by MCP Tool test at ${new Date().toISOString()}`,
+						},
+					},
+				],
+			},
+		})
 
-		expect(result).toBeTruthy();
-		expect(result?.structuredContent?.outcome).toBeTruthyAndDump(result?.structuredContent);
-	});
-});
+		expect(result).toBeTruthy()
+		expect(result?.structuredContent?.outcome).toBeTruthyAndDump(result?.structuredContent)
+	})
+})
