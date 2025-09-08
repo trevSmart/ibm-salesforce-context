@@ -585,7 +585,7 @@ export async function getApexClassCodeCoverage(classNames = []) {
 		// Only proceed with coverage queries if we have existing classes
 		if (existingNames.length > 0) {
 			// Include relationship Name explicitly in the SELECT
-			const soqlCoverageAggregates = `SELECT ApexClassOrTriggerId, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered FROM ApexCodeCoverageAggregate WHERE ApexClassOrTrigger.Name IN (${existingNames.map((n) => `'${n.replace(/'/g, "\\'")}'`).join(',')})`;
+			const soqlCoverageAggregates = `SELECT ApexClassOrTriggerId, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered FROM ApexCodeCoverageAggregate WHERE ApexClassOrTrigger.Name IN (${existingNames.map((n) => `'${soqlStringLiteralEscape(n)}'`).join(',')})`;
 			const responseCoverageAggregates = await executeSoqlQuery(soqlCoverageAggregates, true);
 			const coverageAggregates = responseCoverageAggregates?.records || [];
 			const aggregateByName = {};
