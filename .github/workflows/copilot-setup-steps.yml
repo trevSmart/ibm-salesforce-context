@@ -55,57 +55,78 @@ jobs:
             exit 1
           fi
 
-      - name: Setup Salesforce org connection (if credentials available)
+      - name: Check Salesforce org connection
         run: |
-          echo "Setting up Salesforce org connection..."
+          echo "Checking Salesforce org connection..."
 
           # Check if already connected
           if ./node_modules/.bin/sf org display --json &> /dev/null; then
             echo "✅ Already connected to a Salesforce org"
             ./node_modules/.bin/sf org display
+            echo "SF_CONNECTED=true" >> $GITHUB_ENV
           else
-            echo "Checking for Salesforce org credentials..."
+            echo "❌ Not connected to Salesforce org"
+            echo "SF_CONNECTED=false" >> $GITHUB_ENV
+          fi
 
-            # Check if required environment variables are set
-            if [ -z "$SF_ORG_CLIENT_ID" ] || [ -z "$SF_ORG_CLIENT_SECRET" ] || [ -z "$SF_ORG_CLIENT_USERNAME" ] || [ -z "$SF_ORG_CLIENT_PASSWORD" ]; then
-              echo "⚠️  Missing Salesforce org credentials in environment variables"
-              echo "   Please set: SF_ORG_CLIENT_ID, SF_ORG_CLIENT_SECRET, SF_ORG_CLIENT_USERNAME, SF_ORG_CLIENT_PASSWORD"
-              echo "   You can also connect manually using: sf org login web --set-default"
-              echo "   Skipping org connection for now..."
-            else
-              echo "Attempting to connect to Salesforce org..."
+      - name: Authenticate with Salesforce org
+        if: env.SF_CONNECTED == 'false'
+        run: |
+          echo "Authenticating with Salesforce org..."
 
-              # Authenticate using OAuth2 password flow
-              response=$(curl -s -X POST "$SF_ORG_URL/services/oauth2/token" \
-                -H "Content-Type: application/x-www-form-urlencoded" \
-                -d "grant_type=password" \
-                -d "client_id=$SF_ORG_CLIENT_ID" \
-                -d "client_secret=$SF_ORG_CLIENT_SECRET" \
-                -d "username=$SF_ORG_CLIENT_USERNAME" \
-                -d "password=$SF_ORG_CLIENT_PASSWORD")
+          # Check if required environment variables are set
+          if [ -z "$SF_ORG_CLIENT_ID" ] || [ -z "$SF_ORG_CLIENT_SECRET" ] || [ -z "$SF_ORG_CLIENT_USERNAME" ] || [ -z "$SF_ORG_CLIENT_PASSWORD" ]; then
+            echo "⚠️  Missing Salesforce org credentials in environment variables"
+            echo "   Please set: SF_ORG_CLIENT_ID, SF_ORG_CLIENT_SECRET, SF_ORG_CLIENT_USERNAME, SF_ORG_CLIENT_PASSWORD"
+            echo "   You can also connect manually using: sf org login web --set-default"
+            echo "SF_AUTH_SUCCESS=false" >> $GITHUB_ENV
+          else
+            echo "Attempting to authenticate with Salesforce org..."
 
-              if [ $? -eq 0 ]; then
-                # Extract access token and instance URL
-                SF_ACCESS_TOKEN=$(echo "$response" | jq -r '.access_token' 2>/dev/null)
-                SF_INSTANCE_URL=$(echo "$response" | jq -r '.instance_url' 2>/dev/null)
+            # Authenticate using OAuth2 password flow
+            response=$(curl -s -X POST "$SF_ORG_URL/services/oauth2/token" \
+              -H "Content-Type: application/x-www-form-urlencoded" \
+              -d "grant_type=password" \
+              -d "client_id=$SF_ORG_CLIENT_ID" \
+              -d "client_secret=$SF_ORG_CLIENT_SECRET" \
+              -d "username=$SF_ORG_CLIENT_USERNAME" \
+              -d "password=$SF_ORG_CLIENT_PASSWORD")
 
-                if [ "$SF_ACCESS_TOKEN" != "null" ] && [ -n "$SF_ACCESS_TOKEN" ]; then
-                  # Login using access token
-                  ./node_modules/.bin/sf org login access-token --instance-url "$SF_INSTANCE_URL" --no-prompt --set-default
+            if [ $? -eq 0 ]; then
+              # Extract access token and instance URL
+              SF_ACCESS_TOKEN=$(echo "$response" | jq -r '.access_token' 2>/dev/null)
+              SF_INSTANCE_URL=$(echo "$response" | jq -r '.instance_url' 2>/dev/null)
 
-                  if [ $? -eq 0 ]; then
-                    echo "✅ Successfully connected to Salesforce org"
-                    ./node_modules/.bin/sf org display
-                  else
-                    echo "❌ Failed to connect to Salesforce org"
-                  fi
-                else
-                  echo "❌ Failed to get access token. Please check credentials"
-                fi
+              if [ "$SF_ACCESS_TOKEN" != "null" ] && [ -n "$SF_ACCESS_TOKEN" ]; then
+                echo "✅ Successfully obtained access token"
+                echo "SF_ACCESS_TOKEN=$SF_ACCESS_TOKEN" >> $GITHUB_ENV
+                echo "SF_INSTANCE_URL=$SF_INSTANCE_URL" >> $GITHUB_ENV
+                echo "SF_AUTH_SUCCESS=true" >> $GITHUB_ENV
               else
-                echo "❌ Failed to authenticate with Salesforce org"
+                echo "❌ Failed to get access token. Response:"
+                echo "$response"
+                echo "SF_AUTH_SUCCESS=false" >> $GITHUB_ENV
               fi
+            else
+              echo "❌ Failed to authenticate with Salesforce org"
+              echo "SF_AUTH_SUCCESS=false" >> $GITHUB_ENV
             fi
+          fi
+
+      - name: Login to Salesforce org
+        if: env.SF_AUTH_SUCCESS == 'true'
+        run: |
+          echo "Logging into Salesforce org..."
+
+          # Login using access token
+          ./node_modules/.bin/sf org login access-token --instance-url "$SF_INSTANCE_URL" --no-prompt --set-default
+
+          if [ $? -eq 0 ]; then
+            echo "✅ Successfully connected to Salesforce org"
+            ./node_modules/.bin/sf org display
+          else
+            echo "❌ Failed to connect to Salesforce org"
+            exit 1
           fi
 
       - name: Create Salesforce project structure
