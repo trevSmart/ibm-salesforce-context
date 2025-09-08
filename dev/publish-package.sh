@@ -213,7 +213,7 @@ npm version $new_version --no-git-tag-version > /dev/null 2>&1
 echo
 
 # Update README deeplinks before preparing dist
-node dev/updateReadmeDeeplinks.js > /dev/null 2>&1 || true
+node dev/updateReadme.js > /dev/null 2>&1 || true
 
 # Clone source code to dist (with .npmignore exclusions)
 echo "\033[95mGenerating pkg with obfuscated code...\033[0m"

@@ -22,10 +22,15 @@ for (const line of envRaw.split('\n')) {
 	}
 }
 
+//Read package.json to get package name
+const packageJsonPath = path.resolve(__dirname, '../package.json');
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+const packageName = packageJson.name;
+
 //Generate deeplink configs
-const cfgCursorBase64 = Buffer.from(JSON.stringify({command: 'npx', args: ['test_research4'], env: {}})).toString('base64');
+const cfgCursorBase64 = Buffer.from(JSON.stringify({command: 'npx', args: [packageName], env: {}})).toString('base64');
 const deeplinkCursor = `cursor://anysphere.cursor-deeplink/mcp/install?name=ibm-salesforce-context&config=${cfgCursorBase64}`;
-const deeplinkVsCode = `vscode:mcp/install?${encodeURIComponent(JSON.stringify({name: 'ibm-salesforce-mcp', command: 'npx', args: ['test_research4']}))}`;
+const deeplinkVsCode = `vscode:mcp/install?${encodeURIComponent(JSON.stringify({name: 'ibm-salesforce-mcp', command: 'npx', args: [packageName]}))}`;
 
 //Read README.md
 const readmePath = path.resolve(__dirname, '../README.md');

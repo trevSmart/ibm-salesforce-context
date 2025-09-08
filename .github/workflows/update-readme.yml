@@ -1,0 +1,59 @@
+name: Update README Package Name
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'package.json'
+      - 'README.md'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'package.json'
+      - 'README.md'
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+
+    - name: Get package name
+      id: package-name
+      run: |
+        PACKAGE_NAME=$(node -p "require('./package.json').name")
+        echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+        echo "Package name: $PACKAGE_NAME"
+
+    - name: Update README.md
+      run: |
+        # Replace <package-name> with actual package name
+        sed -i "s/<package-name>/${{ steps.package-name.outputs.package_name }}/g" README.md
+
+        # Check if changes were made
+        if git diff --quiet README.md; then
+          echo "No changes needed in README.md"
+        else
+          echo "README.md updated with package name"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md
+          git commit -m "Update README.md with package name: ${{ steps.package-name.outputs.package_name }}"
+          git push
+        fi
+
+    - name: Show changes
+      if: steps.package-name.outputs.package_name
+      run: |
+        echo "README.md content preview:"
+        head -20 README.md
