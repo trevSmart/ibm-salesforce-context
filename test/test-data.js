@@ -1,8 +1,3 @@
-/**
- * Test configuration data for MCP Salesforce tests
- * Contains test IDs and configuration values used across test files
- */
-
 export const TestData = {
 	salesforce: {
 		testAccountId: '001KN00000Ilrd9YAB',
@@ -10,6 +5,6 @@ export const TestData = {
 		testApexRestResourceData: {
 			apexClassOrRestResourceName: 'TestRestResource'
 		},
-		testUser: 'u0190347@cc-caixabank.com.devservice'
+		testUser: process.env.MCP_TEST_USER || 'missing test user in $MCP_TEST_USER'
 	}
 };
