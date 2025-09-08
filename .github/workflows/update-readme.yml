@@ -16,16 +16,16 @@ jobs:
   update-readme:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 0
-
-    permissions:
-      contents: write
-      pull-requests: write
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
