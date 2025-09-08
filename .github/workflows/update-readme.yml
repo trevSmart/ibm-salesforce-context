@@ -23,6 +23,10 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 0
 
+    permissions:
+      contents: write
+      pull-requests: write
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -49,7 +53,9 @@ jobs:
           git config --local user.name "GitHub Action"
           git add README.md
           git commit -m "Update README.md with package name: ${{ steps.package-name.outputs.package_name }}"
-          git push
+          # Note: Push requires proper repository permissions
+          # Uncomment the next line if permissions are configured:
+          # git push
         fi
 
     - name: Show changes
