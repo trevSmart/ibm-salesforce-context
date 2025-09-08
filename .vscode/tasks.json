@@ -34,7 +34,7 @@
 		},
 		{
 			"type": "npm",
-			"script": "startMcpInspector",
+			"script": "test:mcpInspector",
 			"group": {
 				"kind": "test",
 			},
