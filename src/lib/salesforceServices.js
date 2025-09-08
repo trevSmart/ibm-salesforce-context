@@ -233,16 +233,10 @@ export async function getOrgAndUserDetails(skipCache = false) {
 			throw new Error('Error: Could not retrieve Salesforce org and user details.');
 		}
 
-		const org = {
-			id: orgResult.id,
-			alias: orgResult.alias,
-			instanceUrl: orgResult.instanceUrl,
-			apiVersion: orgResult.apiVersion,
-			accessToken: orgResult.accessToken,
+		return {
+			...orgResult,
 			user: {id: null, username: orgResult.username, profileName: null, name: null}
 		};
-		// state.org = org;
-		return org;
 
 	} catch (error) {
 		logger.error(error, 'Error getting org and user details');

@@ -99,7 +99,7 @@ async function setWorkspacePath(workspacePath) {
 
 async function updateOrgAndUserDetails() {
 	try {
-		const currentUsername = state.org?.user?.username;
+		const currentUsername = state.org?.username;
 		const org = await getOrgAndUserDetails(true);
 		state.org = {
 			...org,
@@ -117,7 +117,7 @@ async function updateOrgAndUserDetails() {
 		if (currentUsername !== newUsername) {
 			clearResources();
 			try {
-				const result = await executeSoqlQuery(`SELECT Id FROM PermissionSetAssignment WHERE Assignee.Username = '${state.org.user.username}' AND PermissionSet.Name = 'IBM_SalesforceContextUser'`);
+				const result = await executeSoqlQuery(`SELECT Id FROM PermissionSetAssignment WHERE Assignee.Username = '${state.org.username}' AND PermissionSet.Name = 'IBM_SalesforceContextUser'`);
 				if (result?.records?.length) {
 					state.org.user.id = result.records[0].Id;
 					state.userValidated = true;
@@ -142,6 +142,7 @@ async function updateOrgAndUserDetails() {
 
 	} catch (error) {
 		logger.error(error, 'Error updating org and user details');
+		// console.error(error);
 		state.org = {};
 		state.userValidated = false;
 	}
@@ -236,7 +237,7 @@ function registerHandlers() {
 					if (!state.org.user.id) {
 						throw new Error('❌ Org and user details not available. The server may still be initializing.');
 					} else if (!state.userValidated) {
-						throw new Error(`🚫 Request blocked due to unsuccessful user validation for "${state.org.user.username}".`);
+						throw new Error(`🚫 Request blocked due to unsuccessful user validation for "${state.org.username}".`);
 					}
 				}
 				let toolHandler = StaticToolHandlers[tool];
@@ -301,6 +302,7 @@ function registerHandlers() {
 			} else if (client.supportsCapability('roots')) {
 				mcpServer.server.listRoots();
 			}
+
 			await updateOrgAndUserDetails();
 
 			//Lògica post-inicialització
@@ -309,11 +311,13 @@ function registerHandlers() {
 				// Iniciar el watcher
 				targetOrgWatcher.start(updateOrgAndUserDetails, state.org?.alias);
 
-				// Consultar el full name de l'u d'usuari
+				// Verificar que state.org estigui correctament inicialitzat abans de continuar
+				if (!state.org.username) {
+					logger.error('Org details not available, skipping post-initialization logic');
+					throw new Error('Org details not available');
+				}
 
-				console.error(`🔥 ${JSON.stringify(state.org, null, 3)}`); //???????????
-
-
+				// Consultar el full name de l'usuari
 				const userResult = await executeSoqlQuery(`SELECT Id, Profile.Name FROM User WHERE Username = '${state.org.username}'`);
 				const user = userResult?.records?.[0];
 
