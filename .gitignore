@@ -28,6 +28,7 @@ Thumbs.db
 .sf/
 sfdx-project.json
 force-app/
+SalesforceTestProject/
 
 # Environment variables and secrets
 .env
