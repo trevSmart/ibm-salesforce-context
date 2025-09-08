@@ -17,6 +17,9 @@ const { stopHttpServer } = transportModule
 const port = 3000 + Number(process.env.VITEST_WORKER_ID || 0)
 process.env.MCP_HTTP_PORT = String(port)
 
+// Enable dry-run mode for reportIssue to prevent creating real GitHub issues during tests
+process.env.MCP_REPORT_ISSUE_DRY_RUN = 'true'
+
 beforeAll(async () => {
 	const artifactsDir = path.join(process.cwd(), '.test-artifacts')
 	try {
