@@ -56,9 +56,6 @@ venv/
 env/
 ENV/
 
-# Jupyter notebooks (optional - uncomment if you don't want to version them)
-# notebooks/
-
 # Python cache
 __pycache__/
 *.pyc
