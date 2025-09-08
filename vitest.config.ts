@@ -5,10 +5,11 @@ export default defineConfig({
 		environment: 'node',
 		setupFiles: ['./test/setup.ts'],
 		testTimeout: 10000,
+		retry: 2,
 		include: ['test/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
 		coverage: {
-			enabled: true,
-			reporter: ['text'],
+			enabled: false,
+			reporter: [],
 			reportsDirectory: 'node_modules/.vitest/coverage', //dummy
 			include: ['*.js', '*.ts', 'src/**/*.js', 'src/**/*.ts'],
 			provider: 'v8',

@@ -5,7 +5,6 @@ import config from './config.js';
 import {createModuleLogger} from './lib/logger.js';
 import {cleanupObsoleteTempFiles, ensureBaseTmpDir} from './lib/tempManager.js';
 import {state} from './mcp-server.js';
-import {executeSoqlQuery} from './lib/salesforceServices.js';
 
 const logger = createModuleLogger(import.meta.url);
 
@@ -25,26 +24,6 @@ export function withTimeout(promise, ms, errorMessage = 'Operation timeout') {
  * @param {string} username - The username to validate
  * @returns {Promise<void>}
  */
-export async function validateUserPermissions(username) {
-	try {
-		if (typeof username !== 'string' || !username.trim()) {
-			throw new Error('Invalid username parameter');
-		}
-		// Escape backslashes first, then single quotes for SOQL string literals
-		const safeUsername = username.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-		const soql = `SELECT Id FROM PermissionSetAssignment WHERE Assignee.Username = '${safeUsername}' AND PermissionSet.Name = 'IBM_SalesforceContextUser'`;
-		const query = await withTimeout(executeSoqlQuery(soql), 10000, 'Permission query timeout');
-		if (query?.records?.length) {
-			state.userValidated = true;
-		} else {
-			state.userValidated = false;
-			logger.error(`Insufficient permissions in org "${state.org.alias}" for user "${username}"`);
-		}
-	} catch (error) {
-		state.userValidated = false;
-		logger.error(error, 'Error validating user permissions');
-	}
-}
 
 /*
 export function notifyProgressChange(progressToken, total, progress, message) {

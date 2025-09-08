@@ -6,9 +6,9 @@ import client from './client.js';
 import config from './config.js';
 import {createModuleLogger} from './lib/logger.js';
 import targetOrgWatcher from './lib/OrgWatcher.js';
-import {getOrgAndUserDetails} from './lib/salesforceServices.js';
+import {getOrgAndUserDetails, executeSoqlQuery} from './lib/salesforceServices.js';
 import {connectTransport} from './lib/transport.js';
-import {getAgentInstructions, validateUserPermissions, withTimeout} from './utils.js';
+import {getAgentInstructions, withTimeout} from './utils.js';
 //Prompts
 //import { codeModificationPromptDefinition, codeModificationPrompt } from './prompts/codeModificationPrompt.js';
 import {apexRunScriptPrompt, apexRunScriptPromptDefinition} from './prompts/apex-run-script.js';
@@ -33,6 +33,7 @@ import {salesforceContextUtilsToolDefinition, salesforceContextUtilsToolHandler}
 // Define state object here instead of importing it
 export const state = {
 	org: {},
+	releaseName: null,
 	startedDate: new Date(),
 	userValidated: true,
 	currentLogLevel: process.env.LOG_LEVEL || 'info'
@@ -100,10 +101,34 @@ async function updateOrgAndUserDetails() {
 	try {
 		const currentUsername = state.org?.user?.username;
 		const org = await getOrgAndUserDetails(true);
-		state.org = org;
-		if (currentUsername !== org?.user?.username) {
+		state.org = {
+			...org,
+			user: {
+				id: null,
+				username: org.username,
+				profileName: null,
+				name: null
+			}
+		};
+		const newUsername = (org?.username ?? '').trim();
+		if (!newUsername) {
+			throw new Error('Invalid username parameter');
+		}
+		if (currentUsername !== newUsername) {
 			clearResources();
-			await withTimeout(validateUserPermissions(org.user.username), 4000, 'User validation timeout');
+			try {
+				const result = await executeSoqlQuery(`SELECT Id FROM PermissionSetAssignment WHERE Assignee.Username = '${state.org.user.username}' AND PermissionSet.Name = 'IBM_SalesforceContextUser'`);
+				if (result?.records?.length) {
+					state.org.user.id = result.records[0].Id;
+					state.userValidated = true;
+				} else {
+					state.userValidated = false;
+					logger.error(`Insufficient permissions in org "${state.org.alias}" for user "${newUsername}"`);
+				}
+			} catch (error) {
+				state.userValidated = false;
+				logger.error(error, 'Error validating user permissions');
+			}
 		}
 		// Update the watcher with the new org alias
 		if (targetOrgWatcher && org?.alias) {
@@ -114,6 +139,7 @@ async function updateOrgAndUserDetails() {
 		if (typeof resolveOrgReady === 'function') {
 			resolveOrgReady();
 		}
+
 	} catch (error) {
 		logger.error(error, 'Error updating org and user details');
 		state.org = {};
@@ -273,24 +299,51 @@ function registerHandlers() {
 			if (process.env.WORKSPACE_FOLDER_PATHS) {
 				setWorkspacePath(process.env.WORKSPACE_FOLDER_PATHS);
 			} else if (client.supportsCapability('roots')) {
-				try {
-					await withTimeout(mcpServer.server.listRoots(), 4000, 'Roots list timeout');
-				} catch (error) {
-					logger.debug(`Requested roots list but client returned error: ${JSON.stringify(error, null, 3)}`);
-				}
+				mcpServer.server.listRoots();
 			}
+			await updateOrgAndUserDetails();
 
-			try {
+			//Lògica post-inicialització
+			const postInitialization = async () => {
+
+				// Iniciar el watcher
 				targetOrgWatcher.start(updateOrgAndUserDetails, state.org?.alias);
-				await withTimeout(updateOrgAndUserDetails(), 15000, 'Org and user details update timeout');
-			} catch (error) {
-				logger.error(error, 'Error during org setup');
-				if (typeof resolveOrgReady === 'function') {
-					resolveOrgReady();
-				}
+
+				// Consultar el full name de l'u d'usuari
+
+				console.error(`🔥 ${JSON.stringify(state.org, null, 3)}`); //???????????
+
+
+				const userResult = await executeSoqlQuery(`SELECT Id, Profile.Name FROM User WHERE Username = '${state.org.username}'`);
+				const user = userResult?.records?.[0];
+
+				// Consultar el release name
+				const releasesResult = await fetch(`${state.org.instanceUrl}/services/data/`, {});
+				const releases = await releasesResult.json();
+				const releaseName = releases.find((r) => r.version === state.org.apiVersion)?.label ?? null;
+
+				// Actualitzar l'estat de l'org
+				state.org = {
+					...state.org,
+					releaseName,
+					user: {
+						...state.org.user,
+						id: state.org.user.id ?? user?.Id ?? null,
+						profileName: state.org.user.profileName ?? user?.Profile?.Name ?? null,
+						name: user?.Name ?? null
+					}
+				};
+
+				newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(state.org, null, 3));
+			};
+			postInitialization();
+
+			if (typeof resolveOrgReady === 'function') {
+				resolveOrgReady();
 			}
 
 			return {protocolVersion, serverInfo, capabilities};
+
 		} catch (error) {
 			logger.error(error, `Error initializing server, stack: ${error.stack}`);
 			throw new Error(`Initialization failed: ${error.message}`);

@@ -191,10 +191,9 @@ export async function executeSoqlQuery(query, useToolingApi = false) {
 			throw new Error('The SOQL query is required and must be a string');
 		}
 
+		query = query.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 		const apiType = useToolingApi ? 'TOOLING' : 'REST';
-		const response = await callSalesforceApi('GET', apiType, '/query', null, {
-			queryParams: {q: query}
-		});
+		const response = await callSalesforceApi('GET', apiType, '/query', null, {queryParams: {q: query}});
 
 		// Validate response structure
 		if (!response || typeof response !== 'object') {
@@ -239,31 +238,11 @@ export async function getOrgAndUserDetails(skipCache = false) {
 			instanceUrl: orgResult.instanceUrl,
 			apiVersion: orgResult.apiVersion,
 			accessToken: orgResult.accessToken,
-			user: {
-				id: null,
-				username: orgResult.username,
-				profileName: null,
-				name: null
-			}
+			user: {id: null, username: orgResult.username, profileName: null, name: null}
 		};
-		state.org = org;
-
-		const getUserFullName = async () => {
-			// Escape username to avoid SOQL injection in string literal
-			const safeUsername = org.user.username.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-			const soqlUserResult = await withTimeout(executeSoqlQuery(`SELECT Id, Name, Profile.Name FROM User WHERE Username = '${safeUsername}'`), 10000, 'User query timeout');
-			const user = soqlUserResult?.records?.[0];
-			state.org.user = {
-				id: user?.Id,
-				username: orgResult?.username,
-				profileName: user.Profile?.Name,
-				name: user?.Name
-			};
-			newResource('mcp://org/orgAndUserDetail.json', 'Org and user details', 'Org and user details', 'application/json', JSON.stringify(state.org, null, 3));
-		};
-		getUserFullName();
-
+		// state.org = org;
 		return org;
+
 	} catch (error) {
 		logger.error(error, 'Error getting org and user details');
 		throw error;

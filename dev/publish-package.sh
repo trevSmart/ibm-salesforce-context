@@ -173,7 +173,7 @@ echo
 if [ "$SKIP_TESTS" = "false" ]; then
   echo "\033[95mRunning basic server functionality tests...\033[0m"
   TEST_OUTPUT=$(mktemp)
-  ./node_modules/.bin/vitest --silent --run --retry=2 --reporter=dot | tee "$TEST_OUTPUT"
+  ./node_modules/.bin/vitest --config ./vitest.config.ts --silent --run --retry=2 --reporter=dot | tee "$TEST_OUTPUT"
 
   # Check if tests passed successfully
   # Look for successful test completion patterns

@@ -1,5 +1,6 @@
-import {describe, it, expect, afterAll} from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import fetch from 'node-fetch';
+import { createMcpClient, disconnectMcpClient } from '../testMcpClient.js';
 
 interface McpResponse {
 	jsonrpc: string;
@@ -10,9 +11,9 @@ interface McpResponse {
 			name: string;
 		};
 		sessionId?: string;
-		tools?: Array<{ name: string }>;
+		tools?: Array<{ name: string; }>;
 		resources?: Array<unknown>;
-		prompts?: Array<{ name: string }>;
+		prompts?: Array<{ name: string; }>;
 	};
 	error?: {
 		message: string;
@@ -20,7 +21,7 @@ interface McpResponse {
 }
 
 // Helper function to parse SSE responses
-async function parseSseResponse(response: { text(): Promise<string> }): Promise<McpResponse | null> {
+async function parseSseResponse(response: { text(): Promise<string>; }): Promise<McpResponse | null> {
 	const responseText = await response.text();
 
 	// First try to parse as regular JSON
@@ -44,24 +45,27 @@ async function parseSseResponse(response: { text(): Promise<string> }): Promise<
 }
 
 describe('MCP HTTP Connection Test', () => {
-        let sessionId: string | null = null;
-        const baseUrl = `http://localhost:${process.env.MCP_HTTP_PORT || '3000'}/mcp`;
+	let sessionId: string | null = null;
+	let client: ReturnType<typeof createMcpClient> extends Promise<infer T> ? T : never = null;
+	const baseUrl = `http://localhost:${process.env.MCP_HTTP_PORT || '3000'}/mcp`;
 
-        afterAll(async () => {
-                if (sessionId) {
-                        try {
-                                await fetch(baseUrl, {
-                                        method: 'DELETE',
-                                        headers: {
-                                                'mcp-session-id': sessionId
-                                        }
-                                });
-                                console.log('🔌 Session closed');
-                        } catch (error) {
-                                console.warn('Warning: Could not close session:', error);
-                        }
-                }
-        });
+	afterAll(async () => {
+		if (client) {
+			await disconnectMcpClient(client);
+		}
+		if (sessionId) {
+			try {
+				await fetch(baseUrl, {
+					method: 'DELETE',
+					headers: {
+						'mcp-session-id': sessionId
+					}
+				});
+			} catch (error) {
+				console.warn('Warning: Could not close session:', error);
+			}
+		}
+	});
 
 	it('should initialize MCP session successfully', async () => {
 		const initRequest = {
@@ -106,7 +110,20 @@ describe('MCP HTTP Connection Test', () => {
 		expect(sessionId).toBeDefined();
 		expect(typeof sessionId).toBe('string');
 
-		console.log(`✅ Session initialized with ID: ${sessionId}`);
+		// Create MCP client and verify org details
+		client = await createMcpClient();
+		expect(client).toBeDefined();
+
+		const result = await client.callTool('salesforceContextUtils', {
+			action: 'getOrgAndUserDetails'
+		});
+
+		const structuredContent = result?.structuredContent;
+		expect(structuredContent).toBeTruthy();
+		expect(structuredContent.org).toBeTruthy();
+		expect(structuredContent.org.id).toBeTruthy();
+		expect(structuredContent.user).toBeTruthy();
+		expect(structuredContent.user.id).toBeTruthy();
 	}, 10000);
 
 	it('should list available tools', async () => {
@@ -138,7 +155,7 @@ describe('MCP HTTP Connection Test', () => {
 		expect(Array.isArray(data?.result?.tools)).toBe(true);
 
 		// Check for expected tools
-		const toolNames = data?.result?.tools?.map((tool: { name: string }) => tool.name) || [];
+		const toolNames = data?.result?.tools?.map((tool: { name: string; }) => tool.name) || [];
 		expect(toolNames).toContain('salesforceContextUtils');
 		expect(toolNames).toContain('executeSoqlQuery');
 		expect(toolNames).toContain('describeObject');
@@ -208,7 +225,7 @@ describe('MCP HTTP Connection Test', () => {
 		expect(Array.isArray(data?.result?.prompts)).toBe(true);
 
 		// Check for expected prompts
-		const promptNames = data?.result?.prompts?.map((prompt: { name: string }) => prompt.name) || [];
+		const promptNames = data?.result?.prompts?.map((prompt: { name: string; }) => prompt.name) || [];
 		expect(promptNames).toContain('apex-run-script');
 		expect(promptNames).toContain('tools-basic-run');
 
