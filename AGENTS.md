@@ -51,6 +51,20 @@ IBM Salesforce Context is a Model Context Protocol (MCP) server built in Node.js
     npm run lint:fix
     ```
 
+### README Management
+
+The project includes automated README management to keep package name references synchronized:
+
+- **Automatic Updates**: GitHub Actions automatically update README.md when package.json changes
+- **Manual Updates**: Run `npm run update-readme` to manually update README.md with current package name
+- **Placeholder System**: Use `<package-name>` in README.md, which gets replaced with the actual package name
+- **Integration**: The update script runs automatically during package publishing
+
+The `dev/updateReadme.js` script handles:
+- Replacing `<package-name>` placeholders with the actual package name from package.json
+- Updating deeplinks for IDE installations
+- Maintaining consistency across all documentation
+
 ## Testing
 
 ### Testing prerequisites

@@ -53,7 +53,13 @@ jobs:
           git config --local user.name "GitHub Action"
           git add README.md
           git commit -m "Update README.md with package name: ${{ steps.package-name.outputs.package_name }}"
-          git push
+          
+          # Only push on main branch pushes, not on pull requests
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            git push
+          else
+            echo "Skipping push - not a main branch push event"
+          fi
         fi
 
     - name: Show changes
