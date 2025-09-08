@@ -41,21 +41,25 @@ jobs:
 
     - name: Update README.md
       run: |
-        # Replace <package-name> with actual package name
-        sed -i "s/<package-name>/${{ steps.package-name.outputs.package_name }}/g" README.md
+        # Use the updated Node.js script to handle both package name and deeplinks
+        node dev/updateReadme.js
 
         # Check if changes were made
         if git diff --quiet README.md; then
           echo "No changes needed in README.md"
         else
-          echo "README.md updated with package name"
+          echo "README.md updated with package name and deeplinks"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add README.md
           git commit -m "Update README.md with package name: ${{ steps.package-name.outputs.package_name }}"
-          # Note: Push requires proper repository permissions
-          # Uncomment the next line if permissions are configured:
-          # git push
+          
+          # Only push on main branch pushes, not on pull requests
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            git push
+          else
+            echo "Skipping push - not a main branch push event"
+          fi
         fi
 
     - name: Show changes

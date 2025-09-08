@@ -7,18 +7,20 @@ import {fileURLToPath} from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-//Load .env variables, ignoring commented lines
+//Load .env variables, ignoring commented lines (if .env exists)
 const envPath = path.resolve(__dirname, '../.env');
-let envRaw = fs.readFileSync(envPath, 'utf8');
-envRaw = envRaw
-	.split('\n')
-	.filter((line) => !line.trim().startsWith('#'))
-	.join('\n');
+if (fs.existsSync(envPath)) {
+	let envRaw = fs.readFileSync(envPath, 'utf8');
+	envRaw = envRaw
+		.split('\n')
+		.filter((line) => !line.trim().startsWith('#'))
+		.join('\n');
 
-for (const line of envRaw.split('\n')) {
-	const [key, ...vals] = line.split('=');
-	if (key && vals.length > 0) {
-		process.env[key.trim()] = vals.join('=').trim();
+	for (const line of envRaw.split('\n')) {
+		const [key, ...vals] = line.split('=');
+		if (key && vals.length > 0) {
+			process.env[key.trim()] = vals.join('=').trim();
+		}
 	}
 }
 
@@ -36,6 +38,11 @@ const deeplinkVsCode = `vscode:mcp/install?${encodeURIComponent(JSON.stringify({
 const readmePath = path.resolve(__dirname, '../README.md');
 let readme = fs.readFileSync(readmePath, 'utf8');
 
+//Replace package name placeholders with actual package name
+const packageNameRegex = /<package-name>/g;
+const originalReadme = readme;
+readme = readme.replace(packageNameRegex, packageName);
+
 //Regex for each button line
 const regexCursor = /cursor:\/\/anysphere\.cursor-deeplink\/mcp\/install\?name=ibm-salesforce-context&config=[^\n`)]*/g;
 const regexVsCode = /vscode:mcp\/install\?[^\n`)]*/g;
@@ -50,11 +57,17 @@ if (regexVsCode.test(readme)) {
 }
 
 console.log('');
-console.log('Updating Cursor and VSCode deeplinks in README.md...');
+console.log('Updating package name placeholders and deeplinks in README.md...');
+
+//Count replacements made
+const packageReplacements = (originalReadme.match(packageNameRegex) || []).length;
+if (packageReplacements > 0) {
+	console.log(`Replaced ${packageReplacements} package name placeholders with "${packageName}"`);
+}
 
 try {
 	fs.writeFileSync(readmePath, readme, 'utf8');
-	console.log('Deeplinks successfully updated in README.md.');
+	console.log('Package name placeholders and deeplinks successfully updated in README.md.');
 	console.log('');
 	process.exit(0);
 } catch (error) {
