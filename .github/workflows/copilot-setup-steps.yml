@@ -81,3 +81,15 @@ jobs:
                     echo "❌ Not connected to Salesforce org"
                     exit 1
                   fi
+
+            - name: Create Salesforce project
+              run: |
+                  echo "Creating Salesforce project..."
+                  if sf project generate --name SalesforceTestProject --output-dir . &>/dev/null; then
+                    echo "✅ Successfully created Salesforce project"
+                  else
+                    echo "❌ Failed to create Salesforce project"
+                    exit 1
+                  fi
+
+                  ls -la
