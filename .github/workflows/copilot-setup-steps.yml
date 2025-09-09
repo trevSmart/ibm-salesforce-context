@@ -65,7 +65,7 @@ jobs:
           echo "Authenticating with Salesforce org..."
 
           # Check if required environment variables are set
-          if [ -z "$SF_ORG_CLIENT_ID" ] || [ -z "$SF_ORG_CLIENT_SECRET" ] || [ -z "$SF_ORG_CLIENT_USERNAME" ] || [ -z "$SF_ORG_CLIENT_PASSWORD" ]; then
+          if [ -z $SF_ORG_CLIENT_ID ] || [ -z $SF_ORG_CLIENT_SECRET ] || [ -z $SF_ORG_CLIENT_USERNAME ] || [ -z $SF_ORG_CLIENT_PASSWORD ]; then
             echo "⚠️  Missing Salesforce org credentials in environment variables"
             echo "   Please set: SF_ORG_CLIENT_ID, SF_ORG_CLIENT_SECRET, SF_ORG_CLIENT_USERNAME, SF_ORG_CLIENT_PASSWORD"
             echo "SF_AUTH_SUCCESS=false" >> $GITHUB_ENV
@@ -73,13 +73,13 @@ jobs:
             echo "Attempting to authenticate with Salesforce org..."
 
             # Authenticate using OAuth2 password flow
-            response=$(curl -s -X POST "$SF_INSTANCE_URL"/services/oauth2/token" \
+            response=$(curl -s -X POST $SF_INSTANCE_URL/services/oauth2/token" \
               -H "Content-Type: application/x-www-form-urlencoded" \
               -d "grant_type=password" \
-              -d "client_id=${{ vars.SF_ORG_CLIENT_ID }}" \
-              -d "client_secret=${{ vars.SF_ORG_CLIENT_SECRET }}" \
-              -d "username=${{ vars.SF_ORG_CLIENT_USERNAME }}" \
-              -d "password=${{ vars.SF_ORG_CLIENT_PASSWORD }}")
+              -d "client_id=$SF_ORG_CLIENT_ID" \
+              -d "client_secret=$SF_ORG_CLIENT_SECRET" \
+              -d "username=$SF_ORG_CLIENT_USERNAME" \
+              -d "password=$SF_ORG_CLIENT_PASSWORD")
 
             if [ $? -eq 0 ]; then
               # Extract access token and instance URL
@@ -88,8 +88,8 @@ jobs:
 
               if [ "$SF_ACCESS_TOKEN" != "null" ] && [ -n "$SF_ACCESS_TOKEN" ]; then
                 echo "✅ Successfully obtained access token"
-                echo "SF_ACCESS_TOKEN=$SF_ACCESS_TOKEN" >> $GITHUB_ENV
-                echo "SF_INSTANCE_URL=$SF_INSTANCE_URL" >> $GITHUB_ENV
+                echo "SF_ACCESS_TOKEN='$SF_ACCESS_TOKEN'" >> $GITHUB_ENV
+                echo "SF_INSTANCE_URL='$SF_INSTANCE_URL'" >> $GITHUB_ENV
                 echo "SF_AUTH_SUCCESS=true" >> $GITHUB_ENV
               else
                 echo "❌ Failed to get access token. Response:"
