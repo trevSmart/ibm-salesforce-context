@@ -70,7 +70,7 @@ jobs:
               if: env.SF_AUTH_SUCCESS == 'true'
               run: |
                   echo "Logging into Salesforce org..."
-                  sf org login access-token --instance-url "$SF_INSTANCE_URL" --no-prompt
+                  sf org login access-token --instance-url "$SF_INSTANCE_URL" --no-prompt --set-default
 
                   echo "Verifying Salesforce org connection..."
                   if sf org display --json &>/dev/null; then
