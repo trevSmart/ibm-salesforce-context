@@ -105,7 +105,3 @@ jobs:
 
                   echo "Project setup completed:"
                   ls -la
-
-            - name: Run Vitest Tests
-              run: |
-                  ./node_modules/.bin/vitest --config ./vitest.config.ts --silent --run
