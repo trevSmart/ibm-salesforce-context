@@ -73,7 +73,7 @@ jobs:
             echo "Attempting to authenticate with Salesforce org..."
 
             # Authenticate using OAuth2 password flow
-            response=$(curl -s -X POST $SF_INSTANCE_URL/services/oauth2/token" \
+            response=$(curl -s -X POST "https://test.salesforce.com/services/oauth2/token" \
               -H "Content-Type: application/x-www-form-urlencoded" \
               -d "grant_type=password" \
               -d "client_id=$SF_ORG_CLIENT_ID" \
