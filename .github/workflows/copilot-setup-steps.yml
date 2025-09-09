@@ -37,45 +37,30 @@ jobs:
       - name: Install JavaScript dependencies
         run: npm ci
 
-      - name: Install Salesforce CLI
+      - name: Install Salesforce CLI globally
         run: |
-          echo "Installing Salesforce CLI as dev dependency..."
-          npm install @salesforce/cli --save-dev
+          echo "Installing Salesforce CLI globally..."
+          npm install -g @salesforce/cli
           echo "✅ Salesforce CLI installed successfully"
 
       - name: Verify Salesforce CLI installation
         run: |
           echo "Checking Salesforce CLI installation..."
-          if [ -f "./node_modules/.bin/sf" ]; then
-            echo "Salesforce CLI found in node_modules"
-            ./node_modules/.bin/sf version
+          if command -v sf &> /dev/null; then
+            echo "Salesforce CLI found globally"
+            sf version
             echo "✅ Salesforce CLI is available"
           else
             echo "❌ Salesforce CLI not found"
             exit 1
           fi
 
-      - name: Check Salesforce org connection
-        run: |
-          echo "Checking Salesforce org connection..."
-
-          # Check if already connected
-          if ./node_modules/.bin/sf org display --json &> /dev/null; then
-            echo "✅ Already connected to a Salesforce org"
-            ./node_modules/.bin/sf org display
-            echo "SF_CONNECTED=true" >> $GITHUB_ENV
-          else
-            echo "❌ Not connected to Salesforce org"
-            echo "SF_CONNECTED=false" >> $GITHUB_ENV
-          fi
-
       - name: Authenticate with Salesforce org
-        if: env.SF_CONNECTED == 'false'
         run: |
           echo "Authenticating with Salesforce org..."
 
           # Check if required environment variables are set
-          if [ -z "$SF_ORG_CLIENT_ID" ] || [ -z "$SF_ORG_CLIENT_SECRET" ] || [ -z "$SF_ORG_CLIENT_USERNAME" ] || [ -z "$SF_ORG_CLIENT_PASSWORD" ]; then
+          if [ -z "${{ vars.SF_ORG_CLIENT_ID }}" ] || [ -z "${{ vars.SF_ORG_CLIENT_SECRET }}" ] || [ -z "${{ vars.SF_ORG_CLIENT_USERNAME }}" ] || [ -z "${{ vars.SF_ORG_CLIENT_PASSWORD }}" ]; then
             echo "⚠️  Missing Salesforce org credentials in environment variables"
             echo "   Please set: SF_ORG_CLIENT_ID, SF_ORG_CLIENT_SECRET, SF_ORG_CLIENT_USERNAME, SF_ORG_CLIENT_PASSWORD"
             echo "   You can also connect manually using: sf org login web --set-default"
@@ -84,13 +69,13 @@ jobs:
             echo "Attempting to authenticate with Salesforce org..."
 
             # Authenticate using OAuth2 password flow
-            response=$(curl -s -X POST "$SF_ORG_URL/services/oauth2/token" \
+            response=$(curl -s -X POST "${{ vars.SF_ORG_URL }}/services/oauth2/token" \
               -H "Content-Type: application/x-www-form-urlencoded" \
               -d "grant_type=password" \
-              -d "client_id=$SF_ORG_CLIENT_ID" \
-              -d "client_secret=$SF_ORG_CLIENT_SECRET" \
-              -d "username=$SF_ORG_CLIENT_USERNAME" \
-              -d "password=$SF_ORG_CLIENT_PASSWORD")
+              -d "client_id=${{ vars.SF_ORG_CLIENT_ID }}" \
+              -d "client_secret=${{ vars.SF_ORG_CLIENT_SECRET }}" \
+              -d "username=${{ vars.SF_ORG_CLIENT_USERNAME }}" \
+              -d "password=${{ vars.SF_ORG_CLIENT_PASSWORD }}")
 
             if [ $? -eq 0 ]; then
               # Extract access token and instance URL
@@ -119,13 +104,27 @@ jobs:
           echo "Logging into Salesforce org..."
 
           # Login using access token
-          ./node_modules/.bin/sf org login access-token --instance-url "$SF_INSTANCE_URL" --no-prompt --set-default
+          sf org login access-token --instance-url "$SF_INSTANCE_URL" --no-prompt --set-default
 
           if [ $? -eq 0 ]; then
             echo "✅ Successfully connected to Salesforce org"
-            ./node_modules/.bin/sf org display
+            sf org display
           else
             echo "❌ Failed to connect to Salesforce org"
+            exit 1
+          fi
+
+      - name: Check Salesforce org connection
+        run: |
+          echo "Checking Salesforce org connection..."
+
+          # Check if connected
+          if sf org display --json &> /dev/null; then
+            echo "✅ Successfully connected to a Salesforce org"
+            sf org display
+          else
+            echo "❌ Not connected to Salesforce org"
+            echo "⚠️  Authentication may have failed or org connection was lost"
             exit 1
           fi
 
@@ -134,7 +133,7 @@ jobs:
           echo "Checking for Salesforce project structure..."
           if [ ! -f "sfdx-project.json" ] || [ ! -d "force-app/main/default/" ]; then
             echo "Salesforce project structure not found. Creating test project..."
-            ./node_modules/.bin/sf project generate --name SalesforceTestProject --template standard
+            sf project generate --name SalesforceTestProject --template standard
             if [ $? -eq 0 ]; then
               echo "✅ Salesforce test project created successfully"
             else
@@ -154,11 +153,11 @@ jobs:
 
           # Check Salesforce CLI
           echo "Salesforce CLI version:"
-          ./node_modules/.bin/sf version
+          sf version
 
           # Check org connection
           echo "Salesforce org connection:"
-          ./node_modules/.bin/sf org display --json | jq -r '.result.username + " (" + .result.orgId + ")"' 2>/dev/null || echo "❌ Not connected to org"
+          sf org display --json | jq -r '.result.username + " (" + .result.orgId + ")"' 2>/dev/null || echo "❌ Not connected to org"
 
           # Check project structure
           if [ -f "sfdx-project.json" ] && [ -d "force-app/main/default/" ]; then

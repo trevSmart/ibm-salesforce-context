@@ -236,9 +236,58 @@ IMPORTANT: Generate your response in English.`;
 						}
 					}
 
-					// Create sampling prompt for title generation
-					const samplingPrompt = `## Issue Description ##
+					// Create sampling prompt for validation and enhanced description generation
+					const validationPrompt = `## Issue Description ##
 ${issueDescription}
+
+## Tool Information ##
+Tool: ${detectedToolName}
+Severity: ${issueSeverity || 'medium'}
+
+## Task ##
+Analyze this issue description and determine if it contains sufficient details to create a meaningful technical issue report. Consider:
+- Is there a clear problem description?
+- Are there specific error messages or symptoms?
+- Is the context clear enough to understand what went wrong?
+- Are there steps to reproduce or specific conditions mentioned?
+
+Respond with a JSON object containing:
+- "valid": boolean - true if there are sufficient details, false if not
+- "description": string - if valid=true, provide an enhanced, detailed description; if valid=false, explain what details are missing
+
+Example response:
+{"valid": true, "description": "Enhanced description with more context..."}
+or
+{"valid": false, "description": "Missing details: specific error message, reproduction steps, etc."}
+
+IMPORTANT: Generate your response in English and return only valid JSON.`;
+
+					// Validate and enhance description using sampling capability
+					const validationResponse = await mcpServer.server.createMessage({
+						messages: [{role: 'user', content: {type: 'text', text: validationPrompt}}],
+						systemPrompt: 'You are a technical issue report specialist. Analyze issue descriptions for completeness and enhance them when possible.',
+						modelPreferences: {speedPriority: 0, intelligencePriority: 1},
+						maxTokens: 500
+					});
+
+					let validationResult;
+					try {
+						validationResult = JSON.parse(validationResponse.content[0].text.trim());
+					} catch (parseError) {
+						logger.debug(`Error parsing validation response: ${parseError.message}`);
+						throw new Error('Failed to parse validation response');
+					}
+
+					if (!validationResult.valid) {
+						throw new Error(`Insufficient details for issue report: ${validationResult.description}`);
+					}
+
+					// Use enhanced description for title generation
+					const enhancedDescription = validationResult.description;
+
+					// Generate title from enhanced description
+					const titlePrompt = `## Enhanced Issue Description ##
+${enhancedDescription}
 
 ## Tool Information ##
 Tool: ${detectedToolName}
@@ -255,19 +304,21 @@ Return only the title without any explanation or formatting.
 
 IMPORTANT: Generate your response in English.`;
 
-					// Generate title using sampling capability
-					const samplingResponse = await mcpServer.server.createMessage({
-						messages: [{role: 'user', content: {type: 'text', text: samplingPrompt}}],
+					const titleResponse = await mcpServer.server.createMessage({
+						messages: [{role: 'user', content: {type: 'text', text: titlePrompt}}],
 						systemPrompt: 'You are a technical issue report specialist. Generate concise, professional titles for technical issues.',
 						modelPreferences: {speedPriority: 0, intelligencePriority: 1},
 						maxTokens: 100
 					});
 
-					title = samplingResponse.content[0].text.trim();
+					title = titleResponse.content[0].text.trim();
+
+					// Update issueDescription with enhanced version
+					issueDescription = enhancedDescription;
 
 					// Fallback if generated title is too long or empty
 					if (!title || title.length > 60) {
-						title = cleanDescription.length > 60 ? `${cleanDescription.substring(0, 60)}...` : cleanDescription;
+						title = enhancedDescription.length > 60 ? `${enhancedDescription.substring(0, 60)}...` : enhancedDescription;
 					}
 				} catch (error) {
 					logger.debug(`Error generating title with sampling: ${error.message}`);
