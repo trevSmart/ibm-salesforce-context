@@ -11,8 +11,7 @@ export async function createMcpClient() {
 	)
 	await coreClient.connect(transport)
 
-	// Sleep for 2 seconds before proceeding to ensure the server is ready
-	await new Promise(resolve => setTimeout(resolve, 5000))
+	// No need for arbitrary sleep - server initialization is now properly synchronized
 
 	return {
 		listResources: async () => (await coreClient.listResources()).resources,

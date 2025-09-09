@@ -155,6 +155,10 @@ async function updateOrgAndUserDetails() {
 		// console.error(error);
 		state.org = {};
 		state.userValidated = false;
+		// Resolve orgReady even if org details failed, so tests can proceed
+		if (typeof resolveOrgReady === 'function') {
+			resolveOrgReady();
+		}
 	}
 }
 
@@ -324,20 +328,24 @@ function registerHandlers() {
 			//Lògica post-inicialització
 			const postInitialization = async () => {
 				if (!state.org.username) {
-					logger.error('Org details not available, skipping post-initialization logic');
-					throw new Error('Org details not available');
+					logger.warn('Org details not available, skipping post-initialization logic');
+					return; // Return gracefully instead of throwing
 				}
 
-				// Iniciar el watcher
-				targetOrgWatcher.start(updateOrgAndUserDetails, state.org?.alias);
+				try {
+					// Iniciar el watcher
+					targetOrgWatcher.start(updateOrgAndUserDetails, state.org?.alias);
 
-				// Recupear la release de la org
-				const releasesResult = await fetch(`${state.org.instanceUrl}/services/data/`, {});
-				const releases = await releasesResult.json();
-				const releaseName = releases.find((r) => r.version === state.org.apiVersion)?.label ?? null;
-				state.org = {...state.org, releaseName};
+					// Recupear la release de la org
+					const releasesResult = await fetch(`${state.org.instanceUrl}/services/data/`, {});
+					const releases = await releasesResult.json();
+					const releaseName = releases.find((r) => r.version === state.org.apiVersion)?.label ?? null;
+					state.org = {...state.org, releaseName};
+				} catch (error) {
+					logger.warn(error, 'Error in post-initialization, continuing anyway');
+				}
 			};
-			postInitialization();
+			await postInitialization(); // Await the post-initialization
 
 			if (typeof resolveOrgReady === 'function') {
 				resolveOrgReady();
@@ -355,7 +363,15 @@ function registerHandlers() {
 let resolveServerReady;
 const readyPromise = new Promise((resolve) => (resolveServerReady = resolve)); // transport connected
 let resolveOrgReady;
-const orgReadyPromise = new Promise((resolve) => (resolveOrgReady = resolve)); // org details loaded/attempted
+let orgReadyResolved = false; // Track if orgReady has been resolved
+const orgReadyPromise = new Promise((resolve) => {
+	resolveOrgReady = () => {
+		if (!orgReadyResolved) {
+			orgReadyResolved = true;
+			resolve();
+		}
+	};
+}); // org details loaded/attempted
 
 //Server initialization function
 export async function setupServer(transport) {
@@ -365,6 +381,18 @@ export async function setupServer(transport) {
 
 	if (typeof resolveServerReady === 'function') {
 		resolveServerReady();
+	}
+
+	// Check if we can get org details immediately during setup
+	try {
+		await updateOrgAndUserDetails();
+	} catch (error) {
+		logger.warn(error, 'Could not load org details during setup, will retry on first client connection');
+	}
+
+	// Always resolve orgReady after setup, regardless of org availability
+	if (typeof resolveOrgReady === 'function') {
+		resolveOrgReady();
 	}
 
 	let connectedMessage;

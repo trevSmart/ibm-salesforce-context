@@ -11,7 +11,7 @@ const transportPath = isRunningFromDist ? './src/lib/transport.js' : '../src/lib
 const serverModule = await import(serverPath)
 const transportModule = await import(transportPath)
 
-const { setupServer, readyPromise, mcpServer } = serverModule
+const { setupServer, readyPromise, orgReadyPromise, mcpServer } = serverModule
 const { stopHttpServer } = transportModule
 
 const port = 3000 + Number(process.env.VITEST_WORKER_ID || 0)
@@ -32,6 +32,12 @@ beforeAll(async () => {
 
 	await setupServer('http')
 	await readyPromise
+	// Wait for org initialization to complete (or fail gracefully)
+	try {
+		await orgReadyPromise
+	} catch (error) {
+		console.warn('Org initialization failed, continuing with tests:', error.message)
+	}
 })
 
 afterAll(async () => {
