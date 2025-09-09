@@ -56,20 +56,24 @@ jobs:
           fi
 
       - name: Authenticate with Salesforce org
+        env:
+          SF_ORG_CLIENT_ID: ${{ vars.SF_ORG_CLIENT_ID }}
+          SF_ORG_CLIENT_SECRET: ${{ vars.SF_ORG_CLIENT_SECRET }}
+          SF_ORG_CLIENT_USERNAME: ${{ vars.SF_ORG_CLIENT_USERNAME }}
+          SF_ORG_CLIENT_PASSWORD: ${{ vars.SF_ORG_CLIENT_PASSWORD }}
         run: |
           echo "Authenticating with Salesforce org..."
 
           # Check if required environment variables are set
-          if [ -z "${{ vars.SF_ORG_CLIENT_ID }}" ] || [ -z "${{ vars.SF_ORG_CLIENT_SECRET }}" ] || [ -z "${{ vars.SF_ORG_CLIENT_USERNAME }}" ] || [ -z "${{ vars.SF_ORG_CLIENT_PASSWORD }}" ]; then
+          if [ -z "$SF_ORG_CLIENT_ID" ] || [ -z "$SF_ORG_CLIENT_SECRET" ] || [ -z "$SF_ORG_CLIENT_USERNAME" ] || [ -z "$SF_ORG_CLIENT_PASSWORD" ]; then
             echo "⚠️  Missing Salesforce org credentials in environment variables"
             echo "   Please set: SF_ORG_CLIENT_ID, SF_ORG_CLIENT_SECRET, SF_ORG_CLIENT_USERNAME, SF_ORG_CLIENT_PASSWORD"
-            echo "   You can also connect manually using: sf org login web --set-default"
             echo "SF_AUTH_SUCCESS=false" >> $GITHUB_ENV
           else
             echo "Attempting to authenticate with Salesforce org..."
 
             # Authenticate using OAuth2 password flow
-            response=$(curl -s -X POST "${{ vars.SF_ORG_URL }}/services/oauth2/token" \
+            response=$(curl -s -X POST "$SF_INSTANCE_URL"/services/oauth2/token" \
               -H "Content-Type: application/x-www-form-urlencoded" \
               -d "grant_type=password" \
               -d "client_id=${{ vars.SF_ORG_CLIENT_ID }}" \
