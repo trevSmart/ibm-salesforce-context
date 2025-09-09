@@ -66,19 +66,18 @@ jobs:
                     fi
                   fi
 
-            - name: Login to Salesforce org
+            - name: Login and verify Salesforce org connection
               if: env.SF_AUTH_SUCCESS == 'true'
               run: |
+                  echo "Logging into Salesforce org..."
                   sf org login access-token --instance-url "$SF_INSTANCE_URL" --no-prompt --set-default
-                  sf org display
 
-            - name: Check Salesforce org connection
-              run: |
-                  echo "Checking Salesforce org connection..."
+                  echo "Verifying Salesforce org connection..."
                   if sf org display --json &>/dev/null; then
                     echo "✅ Successfully connected to a Salesforce org"
+                    sf org display
                   else
-                    echo "❌ Not connected to Salesforce org"
+                    echo "❌ Failed to connect to Salesforce org"
                     exit 1
                   fi
 
@@ -87,11 +86,22 @@ jobs:
                   echo "Creating Salesforce project..."
                   if sf project generate --name SalesforceTestProject --output-dir . &>/dev/null; then
                     echo "✅ Successfully created Salesforce project"
-                    echo "Project structure:"
-                    ls -la
                   else
                     echo "❌ Failed to create Salesforce project"
                     exit 1
                   fi
 
+                  echo "Setting up project structure..."
+                  ls -la
+
+                  # Move force-app directory to current location
+                  mv SalesforceTestProject/force-app .
+
+                  # Copy sfdx-project.json to current location
+                  cp SalesforceTestProject/sfdx-project.json .
+
+                  # Clean up the generated project directory
+                  rm -rf SalesforceTestProject
+
+                  echo "Project setup completed:"
                   ls -la
