@@ -1,184 +1,82 @@
 name: "Copilot Setup Steps"
 
-# Automatically run the setup steps when they are changed to allow for easy validation, and
-# allow manual testing through the repository's "Actions" tab
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - .github/workflows/copilot-setup-steps.yml
-  pull_request:
-    paths:
-      - .github/workflows/copilot-setup-steps.yml
+    workflow_dispatch:
+    push:
+        paths: [.github/workflows/copilot-setup-steps.yml]
+    pull_request:
+        paths: [.github/workflows/copilot-setup-steps.yml]
 
 jobs:
-  # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
-  copilot-setup-steps:
-    runs-on: ubuntu-latest
+    copilot-setup-steps:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
 
-    # Set the permissions to the lowest permissions possible needed for your steps.
-    # Copilot will be given its own token for its operations.
-    permissions:
-      # If you want to clone the repository as part of your setup steps, for example to install dependencies, you'll need the `contents: read` permission. If you don't clone the repository in your setup steps, Copilot will do this for you automatically after the steps complete.
-      contents: read
-
-    # You can define any steps you want, and they will run before the agent starts.
-    # If you do not check out your code, Copilot will do this for you.
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "npm"
-
-      - name: Install JavaScript dependencies
-        run: npm ci
-
-      - name: Install Salesforce CLI globally
-        run: |
-          echo "Installing Salesforce CLI globally..."
-          npm install -g @salesforce/cli
-          echo "✅ Salesforce CLI installed successfully"
-
-      - name: Verify Salesforce CLI installation
-        run: |
-          echo "Checking Salesforce CLI installation..."
-          if command -v sf &> /dev/null; then
-            echo "Salesforce CLI found globally"
-            sf version
-            echo "✅ Salesforce CLI is available"
-          else
-            echo "❌ Salesforce CLI not found"
-            exit 1
-          fi
-
-      - name: Authenticate with Salesforce org
         env:
-          SF_ORG_CLIENT_ID: ${{ vars.SF_ORG_CLIENT_ID }}
-          SF_ORG_CLIENT_SECRET: ${{ vars.SF_ORG_CLIENT_SECRET }}
-          SF_ORG_CLIENT_USERNAME: ${{ vars.SF_ORG_CLIENT_USERNAME }}
-          SF_ORG_CLIENT_PASSWORD: ${{ vars.SF_ORG_CLIENT_PASSWORD }}
-        run: |
-          echo "Authenticating with Salesforce org..."
+            SF_ORG_CLIENT_ID: ${{ secrets.SF_ORG_CLIENT_ID }}
+            SF_ORG_CLIENT_SECRET: ${{ secrets.SF_ORG_CLIENT_SECRET }}
+            SF_ORG_CLIENT_USERNAME: ${{ secrets.SF_ORG_CLIENT_USERNAME }}
+            # Recomanat: password + security token ja concatenats al secret
+            SF_ORG_CLIENT_PASSWORD: ${{ secrets.SF_ORG_CLIENT_PASSWORD }}
 
-          # Check if required environment variables are set
-          if [ -z $SF_ORG_CLIENT_ID ] || [ -z $SF_ORG_CLIENT_SECRET ] || [ -z $SF_ORG_CLIENT_USERNAME ] || [ -z $SF_ORG_CLIENT_PASSWORD ]; then
-            echo "⚠️  Missing Salesforce org credentials in environment variables"
-            echo "   Please set: SF_ORG_CLIENT_ID, SF_ORG_CLIENT_SECRET, SF_ORG_CLIENT_USERNAME, SF_ORG_CLIENT_PASSWORD"
-            echo "SF_AUTH_SUCCESS=false" >> $GITHUB_ENV
-          else
-            echo "Attempting to authenticate with Salesforce org..."
+        steps:
+            - uses: actions/checkout@v5
 
-            # Authenticate using OAuth2 password flow
-            response=$(curl -s -X POST "https://test.salesforce.com/services/oauth2/token" \
-              -H "Content-Type: application/x-www-form-urlencoded" \
-              -d "grant_type=password" \
-              -d "client_id=$SF_ORG_CLIENT_ID" \
-              -d "client_secret=$SF_ORG_CLIENT_SECRET" \
-              -d "username=$SF_ORG_CLIENT_USERNAME" \
-              -d "password=$SF_ORG_CLIENT_PASSWORD")
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "22"
+                  cache: "npm"
 
-            if [ $? -eq 0 ]; then
-              # Extract access token and instance URL
-              SF_ACCESS_TOKEN=$(echo "$response" | jq -r '.access_token' 2>/dev/null)
-              SF_INSTANCE_URL=$(echo "$response" | jq -r '.instance_url' 2>/dev/null)
+            - run: npm ci
 
-              if [ "$SF_ACCESS_TOKEN" != "null" ] && [ -n "$SF_ACCESS_TOKEN" ]; then
-                echo "✅ Successfully obtained access token"
-                echo "SF_ACCESS_TOKEN='$SF_ACCESS_TOKEN'" >> $GITHUB_ENV
-                echo "SF_INSTANCE_URL='$SF_INSTANCE_URL'" >> $GITHUB_ENV
-                echo "SF_AUTH_SUCCESS=true" >> $GITHUB_ENV
-              else
-                echo "❌ Failed to get access token. Response:"
-                echo "$response"
-                echo "SF_AUTH_SUCCESS=false" >> $GITHUB_ENV
-              fi
-            else
-              echo "❌ Failed to authenticate with Salesforce org"
-              echo "SF_AUTH_SUCCESS=false" >> $GITHUB_ENV
-            fi
-          fi
+            - name: Install Salesforce CLI globally
+              run: npm install -g @salesforce/cli
 
-      - name: Login to Salesforce org
-        if: env.SF_AUTH_SUCCESS == 'true'
-        run: |
-          echo "Logging into Salesforce org..."
+            - name: Authenticate with Salesforce org
+              run: |
+                  echo "Authenticating with Salesforce org..."
 
-          # Login using access token
-          sf org login access-token --instance-url "$SF_INSTANCE_URL" --no-prompt --set-default
+                  if [ -z "${SF_ORG_CLIENT_ID:-}" ] || [ -z "${SF_ORG_CLIENT_SECRET:-}" ] || \
+                     [ -z "${SF_ORG_CLIENT_USERNAME:-}" ] || [ -z "${SF_ORG_CLIENT_PASSWORD:-}" ]; then
+                    echo "⚠️  Missing Salesforce org credentials in environment variables"
+                    echo "SF_AUTH_SUCCESS=false" >> "$GITHUB_ENV"
+                  else
+                    response=$(curl -s -X POST "https://test.salesforce.com/services/oauth2/token" \
+                      -H "Content-Type: application/x-www-form-urlencoded" \
+                      --data-urlencode "grant_type=password" \
+                      --data-urlencode "client_id=${SF_ORG_CLIENT_ID}" \
+                      --data-urlencode "client_secret=${SF_ORG_CLIENT_SECRET}" \
+                      --data-urlencode "username=${SF_ORG_CLIENT_USERNAME}" \
+                      --data-urlencode "password=${SF_ORG_CLIENT_PASSWORD}")
 
-          if [ $? -eq 0 ]; then
-            echo "✅ Successfully connected to Salesforce org"
-            sf org display
-          else
-            echo "❌ Failed to connect to Salesforce org"
-            exit 1
-          fi
+                    SF_ACCESS_TOKEN=$(echo "$response" | jq -r '.access_token' 2>/dev/null)
+                    SF_INSTANCE_URL=$(echo "$response" | jq -r '.instance_url' 2>/dev/null)
 
-      - name: Check Salesforce org connection
-        run: |
-          echo "Checking Salesforce org connection..."
+                    if [ -n "${SF_ACCESS_TOKEN:-}" ] && [ "${SF_ACCESS_TOKEN}" != "null" ]; then
+                      echo "✅ Successfully obtained access token"
+                      echo "SF_ACCESS_TOKEN=${SF_ACCESS_TOKEN}" >> "$GITHUB_ENV"
+                      echo "SF_INSTANCE_URL=${SF_INSTANCE_URL}" >> "$GITHUB_ENV"
+                      echo "SF_AUTH_SUCCESS=true" >> "$GITHUB_ENV"
+                    else
+                      echo "❌ Failed to get access token. Response:"
+                      echo "$response"
+                      echo "SF_AUTH_SUCCESS=false" >> "$GITHUB_ENV"
+                    fi
+                  fi
 
-          # Check if connected
-          if sf org display --json &> /dev/null; then
-            echo "✅ Successfully connected to a Salesforce org"
-            sf org display
-          else
-            echo "❌ Not connected to Salesforce org"
-            echo "⚠️  Authentication may have failed or org connection was lost"
-            exit 1
-          fi
+            - name: Login to Salesforce org
+              if: env.SF_AUTH_SUCCESS == 'true'
+              run: |
+                  sf org login access-token --instance-url "$SF_INSTANCE_URL" --no-prompt --set-default
+                  sf org display
 
-      - name: Create Salesforce project structure
-        run: |
-          echo "Checking for Salesforce project structure..."
-          if [ ! -f "sfdx-project.json" ] || [ ! -d "force-app/main/default/" ]; then
-            echo "Salesforce project structure not found. Creating test project..."
-            sf project generate --name SalesforceTestProject --template standard
-            if [ $? -eq 0 ]; then
-              echo "✅ Salesforce test project created successfully"
-            else
-              echo "❌ Failed to create Salesforce project"
-              exit 1
-            fi
-          else
-            echo "✅ Salesforce project structure already exists"
-          fi
-
-      - name: Verify setup
-        run: |
-          echo "Running final verification checks..."
-
-          # Check Node.js
-          echo "Node.js version: $(node --version)"
-
-          # Check Salesforce CLI
-          echo "Salesforce CLI version:"
-          sf version
-
-          # Check org connection
-          echo "Salesforce org connection:"
-          sf org display --json | jq -r '.result.username + " (" + .result.orgId + ")"' 2>/dev/null || echo "❌ Not connected to org"
-
-          # Check project structure
-          if [ -f "sfdx-project.json" ] && [ -d "force-app/main/default/" ]; then
-            echo "✅ Salesforce project structure: OK"
-          else
-            echo "❌ Salesforce project structure: Missing"
-          fi
-
-          # Check environment file
-          if [ -f ".env" ]; then
-            echo "✅ Environment configuration: OK"
-          else
-            echo "❌ Environment configuration: Missing"
-          fi
-
-          echo ""
-          echo "🎉 Setup completed! You can now:"
-          echo "   - Run tests: npm run test"
-          echo "   - Start the MCP server: npm run start"
-          echo "   - Run linting: npm run lint:fix"
+            - name: Check Salesforce org connection
+              run: |
+                  echo "Checking Salesforce org connection..."
+                  if sf org display --json &>/dev/null; then
+                    echo "✅ Successfully connected to a Salesforce org"
+                  else
+                    echo "❌ Not connected to Salesforce org"
+                    exit 1
+                  fi
