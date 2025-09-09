@@ -14,11 +14,11 @@ jobs:
             contents: read
 
         env:
-            SF_ORG_CLIENT_ID: ${{ vars.SF_ORG_CLIENT_ID }}
-            SF_ORG_CLIENT_SECRET: ${{ vars.SF_ORG_CLIENT_SECRET }}
-            SF_ORG_CLIENT_USERNAME: ${{ vars.SF_ORG_CLIENT_USERNAME }}
-            # Recomanat: password + security token ja concatenats al secret
-            SF_ORG_CLIENT_PASSWORD: ${{ vars.SF_ORG_CLIENT_PASSWORD }}
+            SF_ORG_CLIENT_ID: ${{ secrets.SF_ORG_CLIENT_ID }}
+            SF_ORG_CLIENT_SECRET: ${{ secrets.SF_ORG_CLIENT_SECRET }}
+            SF_ORG_CLIENT_USERNAME: ${{ secrets.SF_ORG_CLIENT_USERNAME }}
+            SF_ORG_CLIENT_PASSWORD: ${{ secrets.SF_ORG_CLIENT_PASSWORD }}
+            LOG_LEVEL: "debug"  # Options: trace, debug, info, warn, error, fatal, silent
 
         steps:
             - uses: actions/checkout@v5
