@@ -1,5 +1,7 @@
 name: "Copilot Setup Steps"
 
+# Automatically run the setup steps when they are changed to allow for easy validation, and
+# allow manual testing through the repository's "Actions" tab
 on:
   workflow_dispatch:
   push:
@@ -10,11 +12,18 @@ on:
       - .github/workflows/copilot-setup-steps.yml
 
 jobs:
+  # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
   copilot-setup-steps:
     runs-on: ubuntu-latest
+
+    # Set the permissions to the lowest permissions possible needed for your steps.
+    # Copilot will be given its own token for its operations.
     permissions:
+      # If you want to clone the repository as part of your setup steps, for example to install dependencies, you'll need the `contents: read` permission. If you don't clone the repository in your setup steps, Copilot will do this for you automatically after the steps complete.
       contents: read
 
+    # You can define any steps you want, and they will run before the agent starts.
+    # If you do not check out your code, Copilot will do this for you.
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -52,7 +61,6 @@ jobs:
           SF_ORG_CLIENT_SECRET: ${{ vars.SF_ORG_CLIENT_SECRET }}
           SF_ORG_CLIENT_USERNAME: ${{ vars.SF_ORG_CLIENT_USERNAME }}
           SF_ORG_CLIENT_PASSWORD: ${{ vars.SF_ORG_CLIENT_PASSWORD }}
-          SF_ORG_URL: ${{ vars.SF_ORG_URL }}
         run: |
           echo "Authenticating with Salesforce org..."
 
@@ -65,13 +73,13 @@ jobs:
             echo "Attempting to authenticate with Salesforce org..."
 
             # Authenticate using OAuth2 password flow
-            response=$(curl -s -X POST "${SF_ORG_URL}/services/oauth2/token" \
+            response=$(curl -s -X POST "$SF_INSTANCE_URL"/services/oauth2/token" \
               -H "Content-Type: application/x-www-form-urlencoded" \
               -d "grant_type=password" \
-              -d "client_id=$SF_ORG_CLIENT_ID" \
-              -d "client_secret=$SF_ORG_CLIENT_SECRET" \
-              -d "username=$SF_ORG_CLIENT_USERNAME" \
-              -d "password=$SF_ORG_CLIENT_PASSWORD")
+              -d "client_id=${{ vars.SF_ORG_CLIENT_ID }}" \
+              -d "client_secret=${{ vars.SF_ORG_CLIENT_SECRET }}" \
+              -d "username=${{ vars.SF_ORG_CLIENT_USERNAME }}" \
+              -d "password=${{ vars.SF_ORG_CLIENT_PASSWORD }}")
 
             if [ $? -eq 0 ]; then
               # Extract access token and instance URL
