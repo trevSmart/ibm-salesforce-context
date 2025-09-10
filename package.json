@@ -27,7 +27,7 @@
 	],
 	"author": "Trevor Smart",
 	"dependencies": {
-		"@modelcontextprotocol/sdk": "1.17.4",
+		"@modelcontextprotocol/sdk": "1.17.5",
 		"chokidar": "^4.0.3",
 		"conf": "^14.0.0",
 		"dotenv": "^17.2.2",
